@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Bell, ChevronLeft, Settings, X, Flame } from 'lucide-react';
+import { Menu, Bell, ChevronLeft, Settings, X, Flame, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useFitness, type MainTab } from '../../context/FitnessContext';
 
@@ -26,19 +26,23 @@ export const Header: React.FC<HeaderProps> = ({
     switch (activeTab) {
       case 'home':
         return (
-          <div className="flex flex-col">
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>Good Morning 👋</span>
-            <span style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)' }}>{user.fullName}</span>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.02em' }}>
+              Welcome back 👋
+            </span>
+            <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
+              {user.fullName || 'Athlete'}
+            </span>
           </div>
         );
       case 'workout':
-        return 'Workout';
+        return 'Workout Routine';
       case 'diet':
-        return 'Diet';
+        return 'Diet & Macros';
       case 'progress':
-        return 'Progress';
+        return 'Analytics & Progress';
       case 'profile':
-        return 'Profile';
+        return 'Athlete Profile';
       default:
         return 'FitSync';
     }
@@ -51,13 +55,14 @@ export const Header: React.FC<HeaderProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '16px 20px',
-          background: 'rgba(9, 10, 14, 0.95)',
-          backdropFilter: 'blur(12px)',
+          padding: '16px 18px',
+          background: 'rgba(7, 8, 12, 0.88)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           position: 'sticky',
           top: 0,
           zIndex: 40,
-          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+          borderBottom: '1px solid var(--border-subtle)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -65,16 +70,17 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onBack}
               style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: 'none',
-                borderRadius: '50%',
-                width: '36px',
-                height: '36px',
+                background: 'rgba(255, 255, 255, 0.07)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '12px',
+                width: '38px',
+                height: '38px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#fff',
                 cursor: 'pointer',
+                transition: 'transform 0.15s ease',
               }}
             >
               <ChevronLeft size={20} />
@@ -83,53 +89,58 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => setIsDrawerOpen(true)}
               style={{
-                background: 'transparent',
-                border: 'none',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '12px',
+                width: '38px',
+                height: '38px',
                 color: '#fff',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
               }}
             >
-              <Menu size={22} />
+              <Menu size={20} />
             </button>
           )}
 
-          <div style={{ fontSize: '18px', fontWeight: 800 }}>
+          <div style={{ fontSize: '18px', fontWeight: 800, fontFamily: 'var(--font-heading)' }}>
             {getTitleContent()}
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {showStreak && activeTab !== 'profile' && (
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
-                background: 'rgba(249, 115, 22, 0.12)',
-                border: '1px solid rgba(249, 115, 22, 0.3)',
-                padding: '4px 8px',
+                gap: '5px',
+                background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.16) 0%, rgba(251, 191, 36, 0.08) 100%)',
+                border: '1px solid rgba(249, 115, 22, 0.35)',
+                padding: '5px 10px',
                 borderRadius: '99px',
                 fontSize: '12px',
-                fontWeight: 700,
-                color: 'var(--color-orange)',
+                fontWeight: 800,
+                color: '#fb923c',
+                boxShadow: '0 2px 12px rgba(249, 115, 22, 0.2)',
               }}
             >
-              <Flame size={14} fill="var(--color-orange)" />
-              <span>{user.streakDays}</span>
-              <span style={{ fontSize: '10px', opacity: 0.8 }}>Day Streak</span>
+              <Flame size={15} fill="#f97316" color="#f97316" className="flame-animated" />
+              <span>{user.streakDays || 1}d</span>
             </div>
           )}
 
           {activeTab === 'profile' ? (
             <button
               style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: 'none',
-                borderRadius: '50%',
-                width: '36px',
-                height: '36px',
+                background: 'rgba(255, 255, 255, 0.07)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '12px',
+                width: '38px',
+                height: '38px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -144,11 +155,11 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '36px',
-                  height: '36px',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '12px',
+                  width: '38px',
+                  height: '38px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -161,22 +172,15 @@ export const Header: React.FC<HeaderProps> = ({
                 <span
                   style={{
                     position: 'absolute',
-                    top: '2px',
-                    right: '2px',
-                    background: '#ef4444',
-                    color: '#fff',
-                    fontSize: '9px',
-                    fontWeight: 800,
-                    width: '15px',
-                    height: '15px',
+                    top: '8px',
+                    right: '8px',
+                    background: 'var(--purple-primary)',
+                    width: '8px',
+                    height: '8px',
                     borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    boxShadow: '0 0 8px var(--purple-primary)',
                   }}
-                >
-                  3
-                </span>
+                />
               </button>
 
               {notificationsOpen && (
@@ -184,28 +188,42 @@ export const Header: React.FC<HeaderProps> = ({
                   style={{
                     position: 'absolute',
                     right: 0,
-                    top: '44px',
-                    width: '260px',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '12px',
-                    boxShadow: 'var(--shadow-card)',
+                    top: '46px',
+                    width: '270px',
+                    background: 'rgba(18, 22, 35, 0.96)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid var(--border-glass)',
+                    borderRadius: '18px',
+                    padding: '14px',
+                    boxShadow: 'var(--shadow-lg)',
                     zIndex: 50,
                   }}
                 >
-                  <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '6px' }}>
-                    Notifications
+                  <div
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      marginBottom: '10px',
+                      borderBottom: '1px solid var(--border-subtle)',
+                      paddingBottom: '8px',
+                      color: 'var(--text-main)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <Sparkles size={14} color="var(--purple-light)" />
+                    Activity Updates
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-                    <div style={{ background: 'rgba(255,255,255,0.04)', padding: '6px 8px', borderRadius: '6px' }}>
-                      ⚡ <strong>Push Day Workout</strong> is ready!
+                    <div style={{ background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.2)', padding: '8px 10px', borderRadius: '10px' }}>
+                      ⚡ <strong>Push Day Workout</strong> scheduled for today.
                     </div>
-                    <div style={{ background: 'rgba(255,255,255,0.04)', padding: '6px 8px', borderRadius: '6px' }}>
-                      💧 Drink 2 more glasses of water today.
+                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', border: '1px solid rgba(6, 182, 212, 0.2)', padding: '8px 10px', borderRadius: '10px' }}>
+                      💧 Drink 2 more glasses of water to hit target.
                     </div>
-                    <div style={{ background: 'rgba(255,255,255,0.04)', padding: '6px 8px', borderRadius: '6px' }}>
-                      🏆 Achievement unlocked: <strong>3 Days Streak</strong>!
+                    <div style={{ background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.2)', padding: '8px 10px', borderRadius: '10px' }}>
+                      🔥 Streak active: <strong>{user.streakDays || 1} Days</strong> on fire!
                     </div>
                   </div>
                 </div>
@@ -216,16 +234,18 @@ export const Header: React.FC<HeaderProps> = ({
           <div
             onClick={() => setActiveTab('profile')}
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
+              width: '38px',
+              height: '38px',
+              borderRadius: '14px',
               overflow: 'hidden',
               border: '2px solid var(--purple-primary)',
+              boxShadow: '0 0 12px var(--purple-glow)',
               cursor: 'pointer',
+              transition: 'transform 0.15s ease',
             }}
           >
             <img
-              src={user.avatarUrl}
+              src={user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'}
               alt={user.fullName}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
@@ -239,49 +259,62 @@ export const Header: React.FC<HeaderProps> = ({
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(8px)',
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(12px)',
             zIndex: 100,
             display: 'flex',
           }}
         >
           <div
             style={{
-              width: '280px',
+              width: '290px',
               height: '100%',
-              background: 'var(--bg-card)',
-              borderRight: '1px solid var(--border-subtle)',
+              background: 'rgba(14, 17, 27, 0.98)',
+              borderRight: '1px solid var(--border-glass)',
               padding: '24px 20px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
+              boxShadow: '10px 0 40px rgba(0,0,0,0.8)',
             }}
           >
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div
                     style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '8px',
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
                       background: 'var(--gradient-purple)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontWeight: 800,
+                      fontWeight: 900,
                       color: '#fff',
+                      boxShadow: 'var(--shadow-purple)',
                     }}
                   >
                     FS
                   </div>
-                  <span style={{ fontSize: '18px', fontWeight: 800, color: '#fff' }}>FitSync</span>
+                  <span style={{ fontSize: '20px', fontWeight: 900, fontFamily: 'var(--font-heading)', color: '#fff' }}>FitSync</span>
                 </div>
                 <button
                   onClick={() => setIsDrawerOpen(false)}
-                  style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}
+                  style={{
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '10px',
+                    width: '32px',
+                    height: '32px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
 
@@ -297,16 +330,19 @@ export const Header: React.FC<HeaderProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       gap: '12px',
-                      padding: '12px 14px',
-                      borderRadius: 'var(--radius-md)',
-                      border: 'none',
+                      padding: '13px 16px',
+                      borderRadius: '14px',
+                      border: activeTab === tab ? '1px solid rgba(139, 92, 246, 0.4)' : '1px solid transparent',
                       background: activeTab === tab ? 'var(--gradient-purple)' : 'transparent',
                       color: '#fff',
-                      fontSize: '14px',
-                      fontWeight: 700,
+                      fontSize: '15px',
+                      fontFamily: 'var(--font-heading)',
+                      fontWeight: activeTab === tab ? 800 : 600,
                       textTransform: 'capitalize',
                       cursor: 'pointer',
                       textAlign: 'left',
+                      transition: 'all 0.15s ease',
+                      boxShadow: activeTab === tab ? 'var(--shadow-purple)' : 'none',
                     }}
                   >
                     {tab}
@@ -315,8 +351,8 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            <div style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
-              FitSync AI Fitness v1.0.0
+            <div style={{ fontSize: '11px', color: 'var(--text-dim)', textAlign: 'center', padding: '10px 0', borderTop: '1px solid var(--border-subtle)' }}>
+              FitSync AI SaaS • v1.0.0 Pro
             </div>
           </div>
           <div style={{ flex: 1 }} onClick={() => setIsDrawerOpen(false)} />

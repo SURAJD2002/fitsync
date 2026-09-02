@@ -1,114 +1,132 @@
 import React, { useState } from 'react';
-import { Flame, Timer, Footprints, Target, Play, Sparkles, Dumbbell, Utensils, Heart, Activity, Zap } from 'lucide-react';
+import { Flame, Timer, Footprints, Target, Play, Sparkles, Dumbbell, Utensils, Heart, Activity, Zap, Droplets, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useFitness } from '../../context/FitnessContext';
 import { MetricCard } from '../common/MetricCard';
 
 export const HomeDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { workout, dietPlan, setActiveTab, setIsWorkoutModalOpen } = useFitness();
+  const { workout, dietPlan, setActiveTab, setIsWorkoutModalOpen, setWaterIntake } = useFitness();
   const [selectedGoal, setSelectedGoal] = useState<string>('build_muscle');
   const [planTab, setPlanTab] = useState<'workout' | 'diet' | 'routine'>('workout');
 
   const goals = [
-    { id: 'build_muscle', label: 'Build Muscle', sub: 'Gain strength & mass', icon: <Dumbbell size={20} color="var(--purple-light)" /> },
-    { id: 'lose_fat', label: 'Lose Fat', sub: 'Burn fat & get lean', icon: <Flame size={20} color="var(--color-orange)" /> },
-    { id: 'improve_fitness', label: 'Improve Fitness', sub: 'Better stamina & health', icon: <Heart size={20} color="var(--color-green)" /> },
-    { id: 'strength', label: 'Strength', sub: 'Increase overall strength', icon: <Activity size={20} color="var(--color-blue)" /> },
-    { id: 'athletic', label: 'Athletic', sub: 'Performance focus', icon: <Zap size={20} color="var(--color-yellow)" /> },
+    { id: 'build_muscle', label: 'Build Muscle', sub: 'Hypertrophy & Mass', icon: <Dumbbell size={18} color="var(--purple-light)" /> },
+    { id: 'lose_fat', label: 'Burn Fat', sub: 'Cut & Definition', icon: <Flame size={18} color="var(--coral-light)" /> },
+    { id: 'improve_fitness', label: 'Endurance', sub: 'Cardio & Stamina', icon: <Heart size={18} color="var(--emerald-light)" /> },
+    { id: 'strength', label: 'Pure Strength', sub: 'Powerlifting Base', icon: <Activity size={18} color="var(--cyan-light)" /> },
+    { id: 'athletic', label: 'Athleticism', sub: 'Agility & Speed', icon: <Zap size={18} color="#fbbf24" /> },
   ];
 
+  const waterGlasses = dietPlan.waterGlassesDrunk ?? 0;
+  const waterTarget = dietPlan.waterTargetGlasses || 8;
+  const waterPercent = Math.min(100, Math.round((waterGlasses / waterTarget) * 100));
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', padding: '16px 20px 30px' }}>
-      {/* AI Coach Banner */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', padding: '16px 18px 28px' }} className="animate-fade-in">
+      {/* AI Coach Hero Glass Banner */}
       <div
-        className="glass-card"
+        className="glass-card glow-card-purple"
         style={{
-          padding: '20px',
-          background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.25) 0%, rgba(18, 20, 28, 0.95) 100%)',
-          border: '1px solid rgba(139, 92, 246, 0.3)',
+          padding: '22px 20px',
           position: 'relative',
           overflow: 'hidden',
+          borderRadius: '24px',
         }}
       >
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: '65%' }}>
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: '68%' }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(139, 92, 246, 0.2)',
-              border: '1px solid rgba(139, 92, 246, 0.4)',
+              background: 'rgba(139, 92, 246, 0.22)',
+              border: '1px solid rgba(139, 92, 246, 0.45)',
               padding: '4px 10px',
               borderRadius: '99px',
-              fontSize: '11px',
-              fontWeight: 700,
+              fontSize: '10.5px',
+              fontWeight: 800,
               color: 'var(--purple-light)',
-              marginBottom: '8px',
+              letterSpacing: '0.06em',
+              marginBottom: '10px',
+              boxShadow: '0 0 12px rgba(139, 92, 246, 0.3)',
             }}
           >
-            <Sparkles size={12} />
-            <span>AI COACH</span>
+            <Sparkles size={12} color="var(--purple-light)" />
+            <span>AI HYPER-COACH</span>
           </div>
 
-          <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#fff', lineHeight: 1.15, marginBottom: '6px' }}>
-            Your Fitness,<br />
-            <span style={{ color: 'var(--purple-light)' }}>Your Way!</span>
+          <h2
+            style={{
+              fontSize: '23px',
+              fontWeight: 900,
+              color: '#fff',
+              lineHeight: 1.18,
+              marginBottom: '8px',
+              fontFamily: 'var(--font-heading)',
+              letterSpacing: '-0.03em',
+            }}
+          >
+            Target Locked,<br />
+            <span className="text-gradient-purple">Crush Today!</span>
           </h2>
-          <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '14px' }}>
-            AI-powered plans for workouts, diet & better you.
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: 1.4 }}>
+            Tailored sets for {workout.title.toLowerCase()} & {dietPlan.dailyCaloriesTarget} kcal budget.
           </p>
 
           <button
-            onClick={() => setActiveTab('workout')}
+            onClick={() => {
+              setActiveTab('workout');
+              setIsWorkoutModalOpen(true);
+            }}
             style={{
-              background: '#fff',
-              color: '#000',
+              background: '#ffffff',
+              color: '#090a0f',
               border: 'none',
-              borderRadius: 'var(--radius-md)',
-              padding: '10px 16px',
+              borderRadius: '14px',
+              padding: '11px 18px',
               fontWeight: 800,
-              fontSize: '13px',
-              display: 'flex',
+              fontSize: '13.5px',
+              fontFamily: 'var(--font-heading)',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '8px',
               cursor: 'pointer',
-              boxShadow: '0 4px 16px rgba(255,255,255,0.2)',
+              boxShadow: '0 6px 20px rgba(255,255,255,0.25)',
+              transition: 'transform 0.15s ease',
             }}
           >
-            <span>Get My Plan</span>
-            <Sparkles size={14} color="#7c3aed" />
+            <Play size={15} fill="#090a0f" />
+            <span>Start Session</span>
           </button>
         </div>
 
-        {/* Hero Banner Background Image */}
+        {/* Hero Banner Visual Layer */}
         <div
           style={{
             position: 'absolute',
-            right: '-10px',
+            right: '-15px',
             bottom: '-10px',
             top: 0,
-            width: '150px',
+            width: '160px',
             pointerEvents: 'none',
-            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)',
-            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)',
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)',
           }}
         >
           <img
-            src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=300&q=80"
+            src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=400&q=80"
             alt="AI Coach"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
           />
         </div>
       </div>
 
-      {/* What's Your Goal? Section */}
+      {/* Target Focus Selector */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>What's Your Goal?</h3>
-          <button style={{ background: 'none', border: 'none', color: 'var(--purple-light)', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-            See All
-          </button>
+          <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>Target Focus</h3>
+          <span style={{ color: 'var(--purple-light)', fontSize: '12px', fontWeight: 700 }}>Customized</span>
         </div>
 
         <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }} className="sub-tabs-container">
@@ -120,22 +138,35 @@ export const HomeDashboard: React.FC = () => {
                 onClick={() => setSelectedGoal(g.id)}
                 className="glass-card"
                 style={{
-                  minWidth: '130px',
+                  minWidth: '135px',
                   padding: '14px',
-                  border: `1.5px solid ${isSelected ? 'var(--purple-primary)' : 'var(--border-subtle)'}`,
-                  background: isSelected ? 'rgba(139, 92, 246, 0.12)' : 'var(--bg-card)',
+                  borderRadius: '18px',
+                  border: isSelected ? '1.5px solid var(--purple-primary)' : '1px solid var(--border-subtle)',
+                  background: isSelected ? 'rgba(139, 92, 246, 0.16)' : 'var(--bg-card)',
+                  boxShadow: isSelected ? '0 4px 20px rgba(139, 92, 246, 0.25)' : 'none',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '8px',
+                  gap: '10px',
+                  transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 }}
               >
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '11px',
+                    background: isSelected ? 'rgba(139, 92, 246, 0.3)' : 'rgba(255,255,255,0.06)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
                   {g.icon}
                 </div>
                 <div>
                   <span style={{ fontSize: '13px', fontWeight: 800, color: '#fff', display: 'block' }}>{g.label}</span>
-                  <span style={{ fontSize: '10px', color: 'var(--text-dim)' }}>{g.sub}</span>
+                  <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>{g.sub}</span>
                 </div>
               </div>
             );
@@ -143,71 +174,137 @@ export const HomeDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Today's Overview Section */}
+      {/* Today's Metabolic Overview Grid */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>Today's Overview</h3>
-          <button style={{ background: 'none', border: 'none', color: 'var(--purple-light)', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-            Edit Goals
-          </button>
+          <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>Daily Metrics</h3>
+          <span style={{ color: 'var(--emerald-light)', fontSize: '12px', fontWeight: 700 }}>● Live Synced</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <MetricCard
-            icon={<Flame size={18} />}
-            value="450"
+            icon={<Flame size={19} />}
+            value="480"
             label="Calories Burned"
-            accentColor="var(--color-blue)"
+            accentColor="var(--coral-primary)"
           />
           <MetricCard
-            icon={<Timer size={18} />}
-            value="52"
-            label="Workout Mins"
-            accentColor="var(--color-green)"
+            icon={<Timer size={19} />}
+            value={`${workout.durationMins || 45}m`}
+            label="Active Workout"
+            accentColor="var(--emerald-primary)"
           />
           <MetricCard
-            icon={<Footprints size={18} />}
-            value="12,450"
-            label="Steps"
-            accentColor="var(--color-orange)"
+            icon={<Footprints size={19} />}
+            value="10,240"
+            label="Steps Tracked"
+            accentColor="var(--cyan-primary)"
           />
           <MetricCard
-            icon={<Target size={18} />}
-            value={`${user.goalProgressPercent}%`}
-            label="Goal Progress"
+            icon={<Target size={19} />}
+            value={`${user.goalProgressPercent || 68}%`}
+            label="Weekly Target"
             accentColor="var(--purple-primary)"
           />
         </div>
       </div>
 
-      {/* Your AI Plan Section */}
+      {/* Interactive Quick-Tap Hydration Station */}
+      <div
+        className="glass-card glow-card-coral"
+        style={{
+          padding: '18px 20px',
+          borderRadius: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+        }}
+        onClick={() => setWaterIntake(waterGlasses + 1)}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div
+            style={{
+              width: '46px',
+              height: '46px',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(59, 130, 246, 0.15) 100%)',
+              border: '1px solid rgba(6, 182, 212, 0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--cyan-light)',
+              boxShadow: '0 4px 16px rgba(6, 182, 212, 0.25)',
+            }}
+          >
+            <Droplets size={22} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '15px', fontWeight: 800, color: '#fff' }}>Hydration Station</span>
+              <span className="badge-pill badge-cyan">{waterPercent}%</span>
+            </div>
+            <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+              {waterGlasses} of {waterTarget} glasses consumed today
+            </span>
+          </div>
+        </div>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setWaterIntake(waterGlasses + 1);
+          }}
+          style={{
+            background: 'var(--gradient-cyan-purple)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '12px',
+            padding: '8px 14px',
+            fontWeight: 800,
+            fontSize: '12.5px',
+            fontFamily: 'var(--font-heading)',
+            cursor: 'pointer',
+            boxShadow: '0 4px 14px rgba(6, 182, 212, 0.3)',
+          }}
+        >
+          +1 Glass
+        </button>
+      </div>
+
+      {/* Routine & AI Plan Section */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>Your AI Plan</h3>
-          <button onClick={() => setActiveTab('workout')} style={{ background: 'none', border: 'none', color: 'var(--purple-light)', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-            See Plan
+          <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>Active Routine</h3>
+          <button
+            onClick={() => setActiveTab(planTab === 'diet' ? 'diet' : 'workout')}
+            style={{ background: 'none', border: 'none', color: 'var(--purple-light)', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+          >
+            Manage Plan
           </button>
         </div>
 
-        <div className="glass-card" style={{ padding: '16px' }}>
-          {/* Sub Navigation Tabs */}
-          <div style={{ display: 'flex', background: 'var(--bg-surface)', borderRadius: 'var(--radius-md)', padding: '4px', marginBottom: '16px' }}>
+        <div className="glass-card" style={{ padding: '18px', borderRadius: '22px' }}>
+          {/* Sub Tab Switcher */}
+          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: '14px', padding: '4px', marginBottom: '16px' }}>
             <button
               onClick={() => setPlanTab('workout')}
               style={{
                 flex: 1,
-                padding: '8px',
-                borderRadius: 'var(--radius-sm)',
+                padding: '9px',
+                borderRadius: '10px',
                 border: 'none',
-                background: planTab === 'workout' ? 'var(--purple-primary)' : 'transparent',
+                background: planTab === 'workout' ? 'var(--gradient-purple)' : 'transparent',
                 color: '#fff',
                 fontWeight: 700,
-                fontSize: '12px',
+                fontSize: '12.5px',
+                fontFamily: 'var(--font-heading)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '6px',
                 cursor: 'pointer',
+                boxShadow: planTab === 'workout' ? 'var(--shadow-purple)' : 'none',
               }}
             >
               <Dumbbell size={14} /> Workout
@@ -216,61 +313,54 @@ export const HomeDashboard: React.FC = () => {
               onClick={() => setPlanTab('diet')}
               style={{
                 flex: 1,
-                padding: '8px',
-                borderRadius: 'var(--radius-sm)',
+                padding: '9px',
+                borderRadius: '10px',
                 border: 'none',
-                background: planTab === 'diet' ? 'var(--purple-primary)' : 'transparent',
+                background: planTab === 'diet' ? 'var(--gradient-purple)' : 'transparent',
                 color: '#fff',
                 fontWeight: 700,
-                fontSize: '12px',
+                fontSize: '12.5px',
+                fontFamily: 'var(--font-heading)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '6px',
                 cursor: 'pointer',
+                boxShadow: planTab === 'diet' ? 'var(--shadow-purple)' : 'none',
               }}
             >
-              <Utensils size={14} /> Diet
-            </button>
-            <button
-              onClick={() => setPlanTab('routine')}
-              style={{
-                flex: 1,
-                padding: '8px',
-                borderRadius: 'var(--radius-sm)',
-                border: 'none',
-                background: planTab === 'routine' ? 'var(--purple-primary)' : 'transparent',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-              }}
-            >
-              📅 Routine
+              <Utensils size={14} /> Nutrition
             </button>
           </div>
 
           {planTab === 'workout' && (
             <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-              <div style={{ width: '100px', height: '90px', borderRadius: 'var(--radius-md)', overflow: 'hidden', position: 'relative' }}>
+              <div
+                style={{
+                  width: '90px',
+                  height: '84px',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
                 <img
                   src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=300&q=80"
-                  alt="Push Day"
+                  alt="Workout Preview"
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </div>
 
               <div style={{ flex: 1 }}>
-                <span style={{ fontSize: '10px', color: 'var(--purple-light)', fontWeight: 700, textTransform: 'uppercase' }}>Today's Workout</span>
+                <span style={{ fontSize: '10.5px', color: 'var(--purple-light)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Today's Session
+                </span>
                 <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#fff', margin: '2px 0' }}>{workout.title}</h4>
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{workout.focusAreas.join(' • ')}</p>
-                <div style={{ display: 'flex', gap: '10px', marginTop: '8px', fontSize: '11px', color: 'var(--text-dim)' }}>
+                <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>{workout.focusAreas.join(' • ')}</p>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '6px', fontSize: '11px', color: 'var(--text-muted)' }}>
                   <span>⏱ {workout.durationMins} min</span>
-                  <span>🔥 {workout.targetCalories} Cal</span>
+                  <span>🔥 {workout.targetCalories} kcal</span>
                 </div>
               </div>
 
@@ -279,10 +369,11 @@ export const HomeDashboard: React.FC = () => {
                   setActiveTab('workout');
                   setIsWorkoutModalOpen(true);
                 }}
+                className="glow-active"
                 style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '50%',
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '14px',
                   background: 'var(--gradient-purple)',
                   border: 'none',
                   color: '#fff',
@@ -301,73 +392,35 @@ export const HomeDashboard: React.FC = () => {
           {planTab === 'diet' && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <span style={{ fontSize: '11px', color: 'var(--purple-light)', fontWeight: 700 }}>Today's Nutrition</span>
-                <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>{dietPlan.title}</h4>
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Target: {dietPlan.dailyCaloriesTarget} kcal / day</p>
+                <span style={{ fontSize: '10.5px', color: 'var(--emerald-light)', fontWeight: 800, textTransform: 'uppercase' }}>
+                  Caloric Blueprint
+                </span>
+                <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#fff', marginTop: '2px' }}>{dietPlan.title}</h4>
+                <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+                  Target: <strong>{dietPlan.dailyCaloriesTarget} kcal</strong> ({dietPlan.proteinTarget}g Protein)
+                </p>
               </div>
               <button
                 onClick={() => setActiveTab('diet')}
-                style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 'var(--radius-md)', padding: '8px 14px', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                style={{
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '12px',
+                  padding: '9px 16px',
+                  color: '#fff',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
               >
-                View Diet
+                <span>View</span>
+                <ChevronRight size={14} />
               </button>
             </div>
           )}
-
-          {planTab === 'routine' && (
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-              ⚡ Evening Stretch & Mobility Routine scheduled for 7:30 PM.
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Recommended For You Section */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>Recommended For You</h3>
-          <button style={{ background: 'none', border: 'none', color: 'var(--purple-light)', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-            See All
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px' }} className="sub-tabs-container">
-          {[
-            {
-              title: 'High Protein Diet',
-              subtitle: '3200 Cal • 5 Meals',
-              image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80',
-            },
-            {
-              title: 'Strength Builder',
-              subtitle: '4 Weeks Program',
-              image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=300&q=80',
-            },
-            {
-              title: 'Morning Routine',
-              subtitle: 'Build a strong habit',
-              image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=300&q=80',
-            },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className="glass-card"
-              style={{
-                minWidth: '160px',
-                borderRadius: 'var(--radius-lg)',
-                overflow: 'hidden',
-                cursor: 'pointer',
-              }}
-            >
-              <div style={{ height: '100px', position: 'relative' }}>
-                <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-              <div style={{ padding: '10px' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#fff' }}>{item.title}</h4>
-                <span style={{ fontSize: '10px', color: 'var(--text-dim)' }}>{item.subtitle}</span>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </div>

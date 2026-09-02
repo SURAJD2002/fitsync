@@ -24,42 +24,46 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       onClick={onClick}
       className="glass-card"
       style={{
-        padding: '14px 16px',
+        padding: '16px 18px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
+        gap: '10px',
+        borderRadius: '20px',
         cursor: onClick ? 'pointer' : 'default',
         position: 'relative',
         overflow: 'hidden',
+        background: 'rgba(18, 22, 35, 0.75)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <div
           style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            background: `${accentColor}1A`,
+            width: '38px',
+            height: '38px',
+            borderRadius: '12px',
+            background: `${accentColor}1F`,
+            border: `1px solid ${accentColor}4D`,
             color: accentColor,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            boxShadow: `0 4px 12px ${accentColor}26`,
           }}
         >
           {icon}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>
+          <span style={{ fontSize: '20px', fontWeight: 900, color: '#ffffff', lineHeight: 1.1, fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em' }}>
             {value}
           </span>
-          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-secondary)' }}>
             {label}
           </span>
         </div>
       </div>
 
       {subValue && (
-        <span style={{ fontSize: '10px', color: accentColor, fontWeight: 700 }}>
+        <span style={{ fontSize: '10.5px', color: accentColor, fontWeight: 800, letterSpacing: '0.02em' }}>
           {subValue}
         </span>
       )}

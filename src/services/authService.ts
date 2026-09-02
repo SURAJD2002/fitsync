@@ -2,6 +2,7 @@ import type { User, BodyProfile } from '../types';
 import { INITIAL_USER, INITIAL_BODY_PROFILE } from '../data/mockFitnessData';
 import { SafeStorage, STORAGE_KEYS } from './storage';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { Capacitor } from '@capacitor/core';
 
 export interface PasswordValidation {
   hasMinLength: boolean;
@@ -152,5 +153,33 @@ export class AuthService {
       email,
       password: pass,
     });
+  }
+
+  static async signInWithGoogle() {
+    if (!isSupabaseConfigured()) {
+      this.setAuthenticated();
+      return { data: { url: null, provider: 'google' }, error: null };
+    }
+
+    const isNative = Capacitor.isNativePlatform();
+    const redirectTo = isNative ? 'com.fitsync.app://google-auth' : window.location.origin;
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+        skipBrowserRedirect: isNative,
+      },
+    });
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    if (isNative && data?.url) {
+      window.location.href = data.url;
+    }
+
+    return { data, error: null };
   }
 }

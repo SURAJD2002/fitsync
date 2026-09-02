@@ -87,82 +87,119 @@ export const WorkoutSessionModal: React.FC = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const completedSetsCount = currentExercise.sets.filter((s) => s.completed).length;
+
   return (
     <Modal
       isOpen={isWorkoutModalOpen}
       onClose={handleClose}
-      title={`Live: ${workout.title}`}
+      title={`Live Session • ${workout.title}`}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {/* Live Elapsed Duration Banner */}
+        {/* Live Duration Banner with Neon Glow */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: 'rgba(139, 92, 246, 0.15)',
-            border: '1px solid rgba(139, 92, 246, 0.3)',
-            padding: '8px 14px',
-            borderRadius: 'var(--radius-md)',
+            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(6, 182, 212, 0.1) 100%)',
+            border: '1px solid rgba(139, 92, 246, 0.4)',
+            padding: '10px 16px',
+            borderRadius: '16px',
+            boxShadow: '0 4px 16px rgba(139, 92, 246, 0.2)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--purple-light)', fontSize: '12px', fontWeight: 700 }}>
-            <Timer size={15} />
-            <span>Active Session</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--purple-light)', fontSize: '13px', fontWeight: 800 }}>
+            <Timer size={16} color="var(--purple-light)" />
+            <span>ACTIVE SESSION</span>
           </div>
-          <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff', fontFamily: 'monospace' }}>
+          <span style={{ fontSize: '16px', fontWeight: 900, color: '#fff', fontFamily: 'var(--font-heading)', letterSpacing: '0.04em' }}>
             {formatTimer(elapsedSeconds)}
           </span>
         </div>
 
-        {/* Exercise Header */}
-        <div style={{ position: 'relative', height: '140px', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+        {/* Exercise Header Visual */}
+        <div style={{ position: 'relative', height: '150px', borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--border-glass)' }}>
           <img src={currentExercise.imageUrl} alt={currentExercise.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }} />
-          <div style={{ position: 'absolute', bottom: '12px', left: '12px', right: '12px' }}>
-            <span style={{ fontSize: '10px', color: 'var(--purple-light)', fontWeight: 700, textTransform: 'uppercase' }}>
-              Exercise {activeExerciseIdx + 1} of {workout.exercises.length} • {currentExercise.category}
-            </span>
-            <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#fff' }}>{currentExercise.name}</h3>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(7, 8, 12, 0.92) 10%, rgba(7, 8, 12, 0.2) 60%, transparent)' }} />
+          <div style={{ position: 'absolute', bottom: '14px', left: '16px', right: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+              <span className="badge-pill badge-purple" style={{ padding: '2px 8px', fontSize: '10px' }}>
+                Exercise {activeExerciseIdx + 1} of {workout.exercises.length}
+              </span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{currentExercise.category}</span>
+            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', fontFamily: 'var(--font-heading)' }}>
+              {currentExercise.name}
+            </h3>
           </div>
         </div>
 
-        {/* Set Tracker Table */}
+        {/* Interactive Set Logger */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-muted)' }}>Sets & Reps Tracker</h4>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px' }}>
+            <h4 style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)' }}>Log Sets & Weights</h4>
+            <span style={{ fontSize: '11px', color: 'var(--emerald-light)', fontWeight: 700 }}>
+              {completedSetsCount}/{currentExercise.sets.length} Completed
+            </span>
+          </div>
 
           {currentExercise.sets.map((set) => (
             <div
               key={set.setNumber}
+              onClick={() => toggleSetCompletion(currentExercise.id, set.setNumber)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '10px 14px',
-                background: set.completed ? 'rgba(16, 185, 129, 0.12)' : 'var(--bg-surface)',
-                border: `1px solid ${set.completed ? 'rgba(16, 185, 129, 0.3)' : 'var(--border-subtle)'}`,
-                borderRadius: 'var(--radius-md)',
+                padding: '12px 16px',
+                background: set.completed ? 'rgba(16, 185, 129, 0.14)' : 'rgba(22, 26, 41, 0.8)',
+                border: `1.5px solid ${set.completed ? 'rgba(16, 185, 129, 0.45)' : 'var(--border-subtle)'}`,
+                borderRadius: '16px',
+                cursor: 'pointer',
+                transition: 'all 0.18s var(--ease-spring)',
               }}
             >
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>Set {set.setNumber}</span>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{set.weightKg} kg × {set.repsMax} Reps</span>
-              <button
-                onClick={() => toggleSetCompletion(currentExercise.id, set.setNumber)}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span
+                  style={{
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '8px',
+                    background: set.completed ? 'var(--emerald-primary)' : 'rgba(255,255,255,0.08)',
+                    color: '#fff',
+                    fontSize: '12px',
+                    fontWeight: 900,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {set.setNumber}
+                </span>
+                <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>Set {set.setNumber}</span>
+              </div>
+
+              <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                <strong>{set.weightKg} kg</strong> × {set.repsMax} Reps
+              </span>
+
+              <div
                 style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  background: set.completed ? 'var(--color-green)' : 'rgba(255,255,255,0.1)',
-                  border: 'none',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '10px',
+                  background: set.completed ? 'var(--emerald-primary)' : 'rgba(255,255,255,0.05)',
+                  border: set.completed ? 'none' : '1px solid var(--border-subtle)',
                   color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  cursor: 'pointer',
+                  boxShadow: set.completed ? '0 0 10px rgba(16, 185, 129, 0.4)' : 'none',
                 }}
               >
-                <Check size={16} />
-              </button>
+                {set.completed && <Check size={18} strokeWidth={3} />}
+              </div>
             </div>
           ))}
         </div>

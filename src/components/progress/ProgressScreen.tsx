@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
-import { Award, Trophy, Dumbbell, Flame, TrendingDown } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
+import { Dumbbell, TrendingDown } from 'lucide-react';
 import { useFitness } from '../../context/FitnessContext';
-import { MetricCard } from '../common/MetricCard';
 import { Modal } from '../common/Modal';
 
 export const ProgressScreen: React.FC = () => {
-  const { weightHistory, bodyComposition, progressPhotos, achievements } = useFitness();
+  const { weightHistory, bodyComposition, progressPhotos } = useFitness();
   const [subTab, setSubTab] = useState<'overview' | 'body_stats' | 'performance' | 'photos'>('overview');
   const [timePeriod, setTimePeriod] = useState<string>('This Month');
   const [selectedPhoto, setSelectedPhoto] = useState<any | null>(null);
 
+  const latestWeight = weightHistory.length > 0 ? weightHistory[weightHistory.length - 1].weightKg : 72.4;
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', padding: '16px 20px 30px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', padding: '16px 18px 30px' }} className="animate-fade-in">
       {/* Sub Navigation Bar */}
       <div className="sub-tabs-container">
         {[
@@ -31,195 +32,236 @@ export const ProgressScreen: React.FC = () => {
         ))}
       </div>
 
-      {/* Your Progress Overview Section */}
+      {/* Hero Analytics Overview Section */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>Your Progress Overview</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', fontFamily: 'var(--font-heading)' }}>
+              Metabolic Analytics
+            </h3>
+            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Real-time physiological trends</span>
+          </div>
+
           <select
             value={timePeriod}
             onChange={(e) => setTimePeriod(e.target.value)}
             style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
+              background: 'rgba(22, 26, 41, 0.85)',
+              border: '1px solid var(--border-glass)',
               color: '#fff',
-              padding: '6px 12px',
+              padding: '6px 14px',
               borderRadius: '99px',
-              fontSize: '11px',
+              fontSize: '11.5px',
               fontWeight: 700,
               outline: 'none',
               cursor: 'pointer',
+              boxShadow: 'var(--shadow-inner-glow)',
             }}
           >
-            <option value="This Week" style={{ background: '#181a26' }}>This Week</option>
-            <option value="This Month" style={{ background: '#181a26' }}>This Month</option>
-            <option value="3 Months" style={{ background: '#181a26' }}>3 Months</option>
-            <option value="1 Year" style={{ background: '#181a26' }}>1 Year</option>
+            <option value="This Week" style={{ background: '#0b0d14' }}>1 Week</option>
+            <option value="This Month" style={{ background: '#0b0d14' }}>1 Month</option>
+            <option value="3 Months" style={{ background: '#0b0d14' }}>3 Months</option>
+            <option value="1 Year" style={{ background: '#0b0d14' }}>1 Year</option>
           </select>
         </div>
 
         {/* 4 Summary Stat Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-          <div className="glass-card" style={{ padding: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(139, 92, 246, 0.15)', color: 'var(--purple-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Dumbbell size={14} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+          <div className="glass-card" style={{ padding: '16px', borderRadius: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '10px',
+                  background: 'rgba(139, 92, 246, 0.2)',
+                  color: 'var(--purple-light)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Dumbbell size={16} />
               </div>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Workouts Completed</span>
+              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontWeight: 600 }}>Workouts Logged</span>
             </div>
-            <span style={{ fontSize: '20px', fontWeight: 900, color: '#fff', display: 'block' }}>48</span>
-            <span style={{ fontSize: '10px', color: 'var(--text-dim)' }}>{timePeriod}</span>
+            <span style={{ fontSize: '22px', fontWeight: 900, color: '#fff', display: 'block', fontFamily: 'var(--font-heading)' }}>48</span>
+            <span style={{ fontSize: '10.5px', color: 'var(--purple-light)', fontWeight: 700 }}>+12% vs last month</span>
           </div>
 
-          <div className="glass-card" style={{ padding: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.15)', color: 'var(--color-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <TrendingDown size={14} />
+          <div className="glass-card" style={{ padding: '16px', borderRadius: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '10px',
+                  background: 'rgba(6, 182, 212, 0.2)',
+                  color: 'var(--cyan-light)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <TrendingDown size={16} />
               </div>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Weight</span>
+              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontWeight: 600 }}>Current Weight</span>
             </div>
-            <span style={{ fontSize: '20px', fontWeight: 900, color: '#fff', display: 'block' }}>72.4 kg</span>
-            <span style={{ fontSize: '10px', color: 'var(--color-green)', fontWeight: 700 }}>-2.6 kg</span>
-          </div>
-
-          <div className="glass-card" style={{ padding: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.15)', color: 'var(--color-orange)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Flame size={14} />
-              </div>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Calories Burned</span>
-            </div>
-            <span style={{ fontSize: '20px', fontWeight: 900, color: '#fff', display: 'block' }}>18,560</span>
-            <span style={{ fontSize: '10px', color: 'var(--text-dim)' }}>{timePeriod}</span>
-          </div>
-
-          <div className="glass-card" style={{ padding: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--color-green)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Trophy size={14} />
-              </div>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Goal Progress</span>
-            </div>
-            <span style={{ fontSize: '20px', fontWeight: 900, color: '#fff', display: 'block' }}>85%</span>
-            <div style={{ height: '4px', background: 'var(--bg-surface)', borderRadius: '99px', overflow: 'hidden', marginTop: '6px' }}>
-              <div style={{ width: '85%', height: '100%', background: 'var(--purple-primary)' }} />
-            </div>
+            <span style={{ fontSize: '22px', fontWeight: 900, color: '#fff', display: 'block', fontFamily: 'var(--font-heading)' }}>
+              {latestWeight} kg
+            </span>
+            <span style={{ fontSize: '10.5px', color: 'var(--emerald-light)', fontWeight: 700 }}>-2.6 kg trend</span>
           </div>
         </div>
 
-        {/* Interactive Recharts Weight Line Chart */}
-        <div className="glass-card" style={{ padding: '16px 12px 8px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 8px 12px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>Weight Progress</span>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--purple-light)' }}>72.4 kg <span style={{ fontSize: '10px', color: 'var(--text-dim)' }}>(29 May)</span></span>
+        {/* Interactive Gradient Area Weight Chart */}
+        <div className="glass-card glow-card-purple" style={{ padding: '18px 14px 10px', borderRadius: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 8px 14px', alignItems: 'center' }}>
+            <div>
+              <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>Weight Progress Trajectory</span>
+              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', display: 'block' }}>ISO Time-Series Logged</span>
+            </div>
+            <span className="badge-pill badge-purple">{latestWeight} kg</span>
           </div>
 
-          <div style={{ width: '100%', height: '160px' }}>
+          <div style={{ width: '100%', height: '170px' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={weightHistory}>
-                <XAxis dataKey="date" stroke="var(--text-dim)" fontSize={10} tickLine={false} axisLine={false} />
+              <AreaChart data={weightHistory}>
+                <defs>
+                  <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--purple-primary)" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="var(--purple-primary)" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" stroke="var(--text-dim)" fontSize={10.5} tickLine={false} axisLine={false} />
                 <YAxis domain={['dataMin - 1', 'dataMax + 1']} hide />
                 <Tooltip
-                  contentStyle={{ background: 'var(--bg-card)', borderColor: 'var(--border-subtle)', borderRadius: '8px', fontSize: '12px' }}
-                  itemStyle={{ color: '#fff' }}
+                  contentStyle={{
+                    background: 'rgba(14, 17, 27, 0.95)',
+                    borderColor: 'var(--border-glass)',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+                  }}
+                  itemStyle={{ color: '#fff', fontWeight: 700 }}
                 />
-                <Line
+                <Area
                   type="monotone"
                   dataKey="weightKg"
                   stroke="var(--purple-primary)"
                   strokeWidth={3}
-                  dot={{ r: 4, fill: 'var(--purple-light)', stroke: 'var(--purple-primary)' }}
-                  activeDot={{ r: 7, fill: '#fff', stroke: 'var(--purple-primary)', strokeWidth: 2 }}
+                  fillOpacity={1}
+                  fill="url(#weightGradient)"
                 />
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* Body Composition Section */}
+      {/* Body Composition Details */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>Body Composition</h3>
-          <button style={{ background: 'none', border: 'none', color: 'var(--purple-light)', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-            View Details &gt;
-          </button>
+          <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>Body Composition</h3>
+          <span style={{ color: 'var(--purple-light)', fontSize: '12px', fontWeight: 700 }}>InBody Scan</span>
         </div>
 
-        <div className="glass-card" style={{ padding: '16px', display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '12px' }}>
-          <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="100" height="100" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="38" stroke="var(--bg-surface)" strokeWidth="12" fill="none" />
-              <circle cx="50" cy="50" r="38" stroke="var(--purple-primary)" strokeWidth="12" fill="none" strokeDasharray="160 240" strokeDashoffset="0" />
+        <div className="glass-card" style={{ padding: '18px 20px', borderRadius: '22px', display: 'flex', gap: '18px', alignItems: 'center' }}>
+          {/* Radial Fat Metric */}
+          <div style={{ position: 'relative', width: '90px', height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="90" height="90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="38" stroke="rgba(255,255,255,0.06)" strokeWidth="12" fill="none" />
+              <circle cx="50" cy="50" r="38" stroke="var(--purple-primary)" strokeWidth="12" fill="none" strokeDasharray="160 240" strokeDashoffset="0" strokeLinecap="round" />
             </svg>
             <div style={{ position: 'absolute', textAlign: 'center' }}>
-              <span style={{ fontSize: '13px', fontWeight: 900, color: '#fff', display: 'block', lineHeight: 1 }}>{bodyComposition.bodyFatPercent}%</span>
-              <span style={{ fontSize: '8px', color: 'var(--color-green)', fontWeight: 700 }}>Good</span>
+              <span style={{ fontSize: '15px', fontWeight: 900, color: '#fff', display: 'block', lineHeight: 1 }}>
+                {bodyComposition.bodyFatPercent}%
+              </span>
+              <span style={{ fontSize: '9px', color: 'var(--emerald-light)', fontWeight: 700 }}>Athletic</span>
             </div>
           </div>
 
-          <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '11px' }}>
+          <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px' }}>
             <div>
-              <span style={{ color: 'var(--text-dim)', display: 'block' }}>Muscle Mass</span>
-              <span style={{ color: '#fff', fontWeight: 800 }}>{bodyComposition.muscleMassKg} kg</span>
-              <span style={{ color: 'var(--color-green)', fontSize: '10px', display: 'block', fontWeight: 700 }}>+{bodyComposition.muscleMassChange} kg</span>
+              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '11px' }}>Muscle Mass</span>
+              <span style={{ color: '#fff', fontWeight: 900, fontSize: '14px' }}>{bodyComposition.muscleMassKg} kg</span>
+              <span style={{ color: 'var(--emerald-light)', fontSize: '10.5px', fontWeight: 700 }}>+{bodyComposition.muscleMassChange} kg</span>
             </div>
             <div>
-              <span style={{ color: 'var(--text-dim)', display: 'block' }}>Body Fat</span>
-              <span style={{ color: '#fff', fontWeight: 800 }}>{bodyComposition.bodyFatPercent}%</span>
-              <span style={{ color: 'var(--color-green)', fontSize: '10px', display: 'block', fontWeight: 700 }}>{bodyComposition.bodyFatChange}%</span>
+              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '11px' }}>Body Fat</span>
+              <span style={{ color: '#fff', fontWeight: 900, fontSize: '14px' }}>{bodyComposition.bodyFatPercent}%</span>
+              <span style={{ color: 'var(--emerald-light)', fontSize: '10.5px', fontWeight: 700 }}>{bodyComposition.bodyFatChange}%</span>
             </div>
             <div>
-              <span style={{ color: 'var(--text-dim)', display: 'block' }}>Water</span>
-              <span style={{ color: '#fff', fontWeight: 800 }}>{bodyComposition.waterPercent}%</span>
-              <span style={{ color: 'var(--color-green)', fontSize: '10px', display: 'block', fontWeight: 700 }}>+{bodyComposition.waterChange}%</span>
+              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '11px' }}>Total Water</span>
+              <span style={{ color: '#fff', fontWeight: 900, fontSize: '14px' }}>{bodyComposition.waterPercent}%</span>
+              <span style={{ color: 'var(--emerald-light)', fontSize: '10.5px', fontWeight: 700 }}>+{bodyComposition.waterChange}%</span>
             </div>
             <div>
-              <span style={{ color: 'var(--text-dim)', display: 'block' }}>Bone Mass</span>
-              <span style={{ color: '#fff', fontWeight: 800 }}>{bodyComposition.boneMassKg} kg</span>
-              <span style={{ color: 'var(--color-green)', fontSize: '10px', display: 'block', fontWeight: 700 }}>+{bodyComposition.boneMassChange} kg</span>
+              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '11px' }}>Bone Mass</span>
+              <span style={{ color: '#fff', fontWeight: 900, fontSize: '14px' }}>{bodyComposition.boneMassKg} kg</span>
+              <span style={{ color: 'var(--emerald-light)', fontSize: '10.5px', fontWeight: 700 }}>+{bodyComposition.boneMassChange} kg</span>
             </div>
           </div>
-        </div>
-
-        {/* 4 Sparkline Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-          <MetricCard icon={<Dumbbell size={14} />} value="72.4" label="Weight" subValue="-2.6 kg" showSparkline />
-          <MetricCard icon={<Flame size={14} />} value="23.1" label="BMI" subValue="Normal" showSparkline />
-          <MetricCard icon={<Trophy size={14} />} value="102" label="Chest" subValue="+2 cm" showSparkline />
-          <MetricCard icon={<Award size={14} />} value="81" label="Waist" subValue="-3 cm" showSparkline />
         </div>
       </div>
 
-      {/* Progress Photos Section */}
+      {/* Progress Photos Gallery */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>Progress Photos</h3>
-          <button style={{ background: 'none', border: 'none', color: 'var(--purple-light)', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-            View All &gt;
-          </button>
+          <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>Transformation Gallery</h3>
+          <span style={{ color: 'var(--purple-light)', fontSize: '12px', fontWeight: 700 }}>4 Photos</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
           {progressPhotos.map((photo) => (
             <div
               key={photo.id}
               onClick={() => setSelectedPhoto(photo)}
               style={{
-                height: '110px',
-                borderRadius: 'var(--radius-md)',
+                height: '115px',
+                borderRadius: '16px',
                 overflow: 'hidden',
                 position: 'relative',
                 border: '1px solid var(--border-subtle)',
                 cursor: 'pointer',
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'transform 0.15s ease',
               }}
             >
               <img src={photo.imageUrl} alt={photo.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               {photo.isLatest && (
-                <span style={{ position: 'absolute', top: '4px', left: '4px', background: 'var(--purple-primary)', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px' }}>
-                  Latest
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '5px',
+                    left: '5px',
+                    background: 'var(--gradient-purple)',
+                    color: '#fff',
+                    fontSize: '9px',
+                    fontWeight: 900,
+                    padding: '2px 6px',
+                    borderRadius: '6px',
+                    boxShadow: '0 2px 8px var(--purple-glow)',
+                  }}
+                >
+                  Current
                 </span>
               )}
-              <span style={{ position: 'absolute', bottom: '4px', right: '4px', background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: '9px', fontWeight: 600, padding: '2px 6px', borderRadius: '4px' }}>
+              <span
+                style={{
+                  position: 'absolute',
+                  bottom: '5px',
+                  right: '5px',
+                  background: 'rgba(7, 8, 12, 0.75)',
+                  backdropFilter: 'blur(6px)',
+                  color: '#fff',
+                  fontSize: '9px',
+                  fontWeight: 700,
+                  padding: '2px 6px',
+                  borderRadius: '6px',
+                }}
+              >
                 {photo.label}
               </span>
             </div>
@@ -227,57 +269,11 @@ export const ProgressScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Achievements Section */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>Achievements</h3>
-          <button style={{ background: 'none', border: 'none', color: 'var(--purple-light)', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-            View All &gt;
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }} className="sub-tabs-container">
-          {achievements.map((ach) => (
-            <div
-              key={ach.id}
-              className="glass-card"
-              style={{
-                minWidth: '110px',
-                padding: '12px 8px',
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-            >
-              <div
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.3) 0%, rgba(147, 51, 234, 0.1) 100%)',
-                  border: '1px solid var(--purple-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--purple-light)',
-                }}
-              >
-                <Award size={20} />
-              </div>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#fff', lineHeight: 1.1 }}>{ach.title}</span>
-              <span style={{ fontSize: '9px', color: 'var(--text-dim)' }}>{ach.subtitle}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Photo Preview Modal */}
       {selectedPhoto && (
-        <Modal isOpen={!!selectedPhoto} onClose={() => setSelectedPhoto(null)} title={`Progress Photo: ${selectedPhoto.label}`}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ height: '300px', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+        <Modal isOpen={!!selectedPhoto} onClose={() => setSelectedPhoto(null)} title={`Transformation: ${selectedPhoto.label}`}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ height: '320px', borderRadius: '22px', overflow: 'hidden', border: '1px solid var(--border-glass)' }}>
               <img src={selectedPhoto.imageUrl} alt={selectedPhoto.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
           </div>
