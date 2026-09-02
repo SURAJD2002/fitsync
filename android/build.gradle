@@ -34,9 +34,17 @@ subprojects {
                 }
             }
         }
+        if (project.plugins.hasPlugin('kotlin-android') || project.plugins.hasPlugin('kotlin') || project.plugins.hasPlugin('org.jetbrains.kotlin.android')) {
+            try {
+                project.kotlin {
+                    jvmToolchain(17)
+                }
+            } catch (Exception e) {
+                // Ignore if kotlin extension not present
+            }
+        }
     }
 }
-
 
 task clean(type: Delete) {
     delete rootProject.buildDir

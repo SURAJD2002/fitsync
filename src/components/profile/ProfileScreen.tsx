@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Camera, Edit2, Crown, Flame, Dumbbell, Target, Award, ChevronRight, Watch, User, Heart, Shield, LogOut } from 'lucide-react';
+import { Camera, Edit2, Crown, Flame, Dumbbell, Target, Award, ChevronRight, Watch, User, Heart, Shield, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
+import { NotificationSettingsModal } from '../common/NotificationSettingsModal';
 
 export const ProfileScreen: React.FC = () => {
   const { user, updateUser, logout } = useAuth();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [nameInput, setNameInput] = useState(user.fullName);
 
   const handleSaveProfile = () => {
@@ -140,6 +142,7 @@ export const ProfileScreen: React.FC = () => {
         </h4>
 
         {[
+          { label: 'Notification Preferences', icon: <Bell size={18} />, action: () => setIsNotificationModalOpen(true) },
           { label: 'Personal Information', icon: <User size={18} /> },
           { label: 'Fitness & Somatotype Goals', icon: <Target size={18} /> },
           { label: 'Connected Wearables & Sensors', icon: <Watch size={18} /> },
@@ -148,12 +151,13 @@ export const ProfileScreen: React.FC = () => {
         ].map((item, idx) => (
           <div
             key={idx}
+            onClick={item.action}
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '14px 0',
-              borderBottom: idx < 4 ? '1px solid var(--border-subtle)' : 'none',
+              borderBottom: idx < 5 ? '1px solid var(--border-subtle)' : 'none',
               cursor: 'pointer',
             }}
           >
@@ -170,6 +174,12 @@ export const ProfileScreen: React.FC = () => {
       <Button variant="danger" onClick={logout} icon={<LogOut size={18} />}>
         Sign Out Account
       </Button>
+
+      {/* Notification Preferences Modal */}
+      <NotificationSettingsModal
+        isOpen={isNotificationModalOpen}
+        onClose={() => setIsNotificationModalOpen(false)}
+      />
 
       {/* Edit Name Modal */}
       {isEditModalOpen && (

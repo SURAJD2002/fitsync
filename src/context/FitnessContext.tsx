@@ -9,6 +9,7 @@ import type {
 } from '../types';
 import { FitnessService } from '../services/fitnessService';
 import { activityTrackingService, type ActivityTrackingState, type DailyActivityRecord } from '../services/activityTrackingService';
+import { notificationService } from '../services/notificationService';
 
 export type MainTab = 'home' | 'workout' | 'diet' | 'progress' | 'profile';
 
@@ -76,8 +77,17 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setIsTracking(res.isTracking);
     });
 
+    // Initialize Notification Channels & Deep Link Router
+    notificationService.initialize();
+    const unregisterDeepLink = notificationService.registerDeepLinkHandler((screen) => {
+      if (['home', 'workout', 'diet', 'progress', 'profile'].includes(screen)) {
+        setActiveTab(screen as MainTab);
+      }
+    });
+
     return () => {
       unsubscribe();
+      unregisterDeepLink();
     };
   }, []);
 

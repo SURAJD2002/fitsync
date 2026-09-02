@@ -1,6 +1,7 @@
 import { ActivityTracker, type StepUpdateEvent } from '../plugins/activityTracker';
 import { SafeStorage } from './storage';
 import { supabase } from './supabaseClient';
+import { notificationService } from './notificationService';
 
 export interface DailyActivityRecord {
   date: string; // 'YYYY-MM-DD'
@@ -198,6 +199,9 @@ export class ActivityTrackingService {
     this.state.caloriesBurned = caloriesBurned;
 
     this.saveState();
+
+    // Check 5k & 10k Activity Milestones
+    notificationService.checkStepMilestones(todaySteps).catch(() => {});
   }
 
   /**
