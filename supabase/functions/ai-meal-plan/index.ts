@@ -49,6 +49,26 @@ serve(async (req: Request) => {
       });
     }
 
+    // Server-Authoritative Entitlement Check (Rule 18 & 19: AI Meal Planner Gate)
+    const { data: hasEntitlement, error: entitlementError } = await supabaseClient.rpc(
+      'check_user_premium_entitlement',
+      { target_user_id: user.id }
+    );
+
+    if (entitlementError || !hasEntitlement) {
+      return new Response(
+        JSON.stringify({
+          error: 'PREMIUM_REQUIRED',
+          message: 'FitSync Premium (₹99/mo) or active trial required to generate custom AI meal plans.',
+          code: 'PAYWALL_TRIGGER',
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     const payload: RequestPayload = await req.json();
 
     // Input Validation

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Camera,
   Edit2,
@@ -17,13 +17,19 @@ import {
   Check,
   RefreshCw,
   Cpu,
+  Sparkles,
+  CreditCard,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useFitness } from '../../context/FitnessContext';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 import { NotificationSettingsModal } from '../common/NotificationSettingsModal';
+import { PremiumModal } from '../subscription/PremiumModal';
 import { activityTrackingService } from '../../services/activityTrackingService';
+import { subscriptionService, type EntitlementState } from '../../services/subscriptionService';
+import { BusinessConfig } from '../../config/businessConfig';
 
 export const ProfileScreen: React.FC = () => {
   const { user, updateUser, logout } = useAuth();
@@ -33,7 +39,18 @@ export const ProfileScreen: React.FC = () => {
   const [nameInput, setNameInput] = useState(user.fullName);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState(false);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [entitlement, setEntitlement] = useState<EntitlementState | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchEntitlement = React.useCallback(async () => {
+    const res = await subscriptionService.getEntitlement(user.id);
+    setEntitlement(res);
+  }, [user.id]);
+
+  useEffect(() => {
+    fetchEntitlement();
+  }, [fetchEntitlement]);
 
   const handleSaveProfile = () => {
     updateUser({ fullName: nameInput });
@@ -64,7 +81,7 @@ export const ProfileScreen: React.FC = () => {
   const latestWeight = weightHistory.length > 0 ? weightHistory[weightHistory.length - 1].weightKg : 75;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', padding: '16px 18px 40px' }} className="animate-fade-in">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '16px 18px 40px' }} className="animate-fade-in">
       <input
         type="file"
         ref={fileInputRef}
@@ -142,7 +159,7 @@ export const ProfileScreen: React.FC = () => {
 
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px' }}>
               <span className="badge-pill badge-purple" style={{ textTransform: 'none', padding: '3px 10px' }}>
-                <Crown size={12} color="#fbbf24" /> Pro Athlete
+                <Crown size={12} color="#fbbf24" /> {entitlement?.isPremium ? 'Premium Athlete' : 'Pro Athlete'}
               </span>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                 Since {user.memberSince || '2026'}
@@ -194,6 +211,61 @@ export const ProfileScreen: React.FC = () => {
         </div>
       </div>
 
+      {/* Subscription & Monetization Status Card */}
+      <div
+        className="glass-card"
+        style={{
+          padding: '18px 20px',
+          borderRadius: '22px',
+          border: entitlement?.isPremium
+            ? '1.5px solid rgba(139, 92, 246, 0.4)'
+            : '1.5px solid rgba(249, 115, 22, 0.35)',
+          background: entitlement?.isPremium
+            ? 'linear-gradient(145deg, rgba(30, 24, 54, 0.7) 0%, rgba(14, 17, 27, 0.8) 100%)'
+            : 'linear-gradient(145deg, rgba(45, 26, 18, 0.7) 0%, rgba(14, 17, 27, 0.8) 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '14px',
+        }}
+      >
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Sparkles size={16} color={entitlement?.isPremium ? 'var(--purple-light)' : 'var(--coral-light)'} />
+            <span style={{ fontSize: '15px', fontWeight: 900, color: '#fff' }}>
+              {entitlement?.isPremium
+                ? entitlement.isTrial
+                  ? `FitSync Trial (${entitlement.trialDaysRemaining}d remaining)`
+                  : `FitSync Premium (${BusinessConfig.currencySymbol}${BusinessConfig.premiumMonthlyPrice}/mo)`
+                : 'FitSync Free Experience'}
+            </span>
+          </div>
+          <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '4px', display: 'block', lineHeight: 1.3 }}>
+            {entitlement?.isPremium
+              ? 'Full AI meal planning, progressive blueprints & metabolic analytics unlocked.'
+              : `Unlock full AI hyper-coach & generative meal plans for ₹${BusinessConfig.premiumMonthlyPrice}/mo.`}
+          </span>
+        </div>
+
+        {entitlement?.isPremium ? (
+          <Button
+            variant="secondary"
+            onClick={() => subscriptionService.manageSubscription()}
+            style={{ padding: '8px 14px', fontSize: '12px', flexShrink: 0 }}
+          >
+            <ExternalLink size={13} /> Manage
+          </Button>
+        ) : (
+          <Button
+            variant="primary"
+            onClick={() => setIsPremiumModalOpen(true)}
+            style={{ padding: '8px 16px', fontSize: '12px', flexShrink: 0 }}
+          >
+            Upgrade
+          </Button>
+        )}
+      </div>
+
       {/* Account Settings List Menu */}
       <div className="glass-card" style={{ padding: '8px 18px', borderRadius: '22px', display: 'flex', flexDirection: 'column' }}>
         <h4 style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', padding: '12px 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -202,6 +274,7 @@ export const ProfileScreen: React.FC = () => {
 
         {[
           { label: 'Notification Preferences', icon: <Bell size={18} />, action: () => setActiveModal('notifications') },
+          { label: 'Subscription & Billing', icon: <CreditCard size={18} />, action: () => setIsPremiumModalOpen(true) },
           { label: 'Personal Information', icon: <User size={18} />, action: () => setActiveModal('personal_info') },
           { label: 'Fitness & Somatotype Goals', icon: <Target size={18} />, action: () => setActiveModal('goals') },
           { label: 'Connected Wearables & Sensors', icon: <Watch size={18} />, action: () => setActiveModal('sensors') },
@@ -216,7 +289,7 @@ export const ProfileScreen: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '14px 0',
-              borderBottom: idx < 5 ? '1px solid var(--border-subtle)' : 'none',
+              borderBottom: idx < 6 ? '1px solid var(--border-subtle)' : 'none',
               cursor: 'pointer',
             }}
           >
@@ -233,6 +306,13 @@ export const ProfileScreen: React.FC = () => {
       <Button variant="danger" onClick={logout} icon={<LogOut size={18} />}>
         Sign Out Account
       </Button>
+
+      {/* FitSync Premium Modal */}
+      <PremiumModal
+        isOpen={isPremiumModalOpen}
+        onClose={() => setIsPremiumModalOpen(false)}
+        onSuccess={() => fetchEntitlement()}
+      />
 
       {/* Notification Preferences Modal */}
       <NotificationSettingsModal

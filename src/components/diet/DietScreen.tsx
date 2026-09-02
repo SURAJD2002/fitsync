@@ -4,12 +4,15 @@ import { useFitness } from '../../context/FitnessContext';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { AIMealPlannerModal } from './AIMealPlannerModal';
+import { PremiumModal } from '../subscription/PremiumModal';
+import { subscriptionService } from '../../services/subscriptionService';
 
 export const DietScreen: React.FC = () => {
   const { dietPlan, setWaterIntake, dietViewMode, setDietViewMode } = useFitness();
   const [subTab, setSubTab] = useState<'overview' | 'meal_plan' | 'recipes' | 'nutrition'>('overview');
   const [editingMeal, setEditingMeal] = useState<any | null>(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState<boolean>(false);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState<boolean>(false);
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
   useEffect(() => {
@@ -144,7 +147,13 @@ export const DietScreen: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setIsAIModalOpen(true)}
+          onClick={() => {
+            if (subscriptionService.canUseFeature('AI_MEAL_PLANNER')) {
+              setIsAIModalOpen(true);
+            } else {
+              setIsPremiumModalOpen(true);
+            }
+          }}
           style={{
             background: 'var(--gradient-emerald)',
             color: '#fff',
@@ -382,6 +391,13 @@ export const DietScreen: React.FC = () => {
       <AIMealPlannerModal
         isOpen={isAIModalOpen}
         onClose={() => setIsAIModalOpen(false)}
+      />
+
+      {/* FitSync Premium Paywall Modal */}
+      <PremiumModal
+        isOpen={isPremiumModalOpen}
+        onClose={() => setIsPremiumModalOpen(false)}
+        onSuccess={() => setIsAIModalOpen(true)}
       />
     </div>
   );
