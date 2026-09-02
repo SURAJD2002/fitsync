@@ -58,7 +58,7 @@ const MainContent: React.FC = () => {
       {authMode === 'app' && (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', width: '100%' }}>
           <Header />
-          <main style={{ flex: 1, overflowY: 'auto', width: '100%' }}>
+          <main style={{ flex: 1, overflowY: 'auto', width: '100%', paddingBottom: '88px' }}>
             {activeTab === 'home' && <HomeDashboard />}
             {activeTab === 'workout' && <WorkoutScreen />}
             {activeTab === 'diet' && <DietScreen />}

@@ -89,7 +89,7 @@ Generate a structured daily meal plan conforming strictly to the following param
 Safety Rules:
 - Never provide medical prescriptions or extreme calorie deprivation.
 - Do NOT include allergens listed above.
-- You must return ONLY valid JSON matching this schema:
+- You must return ONLY raw valid JSON matching this schema (do NOT wrap in markdown backticks):
 {
   "title": "string",
   "goal": "string",
@@ -102,7 +102,7 @@ Safety Rules:
   "meals": [
     {
       "id": "meal_1",
-      "type": "Breakfast" | "Lunch" | "Evening Snack" | "Dinner",
+      "type": "Breakfast",
       "time": "8:00 AM",
       "title": "string",
       "description": "string recipe ingredients and cooking guidance",
@@ -118,30 +118,37 @@ Safety Rules:
     // 1. Primary Attempt: Google Gemini Flash
     if (geminiApiKey) {
       try {
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+        const geminiRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-goog-api-key': geminiApiKey,
+          },
           body: JSON.stringify({
             contents: [{ parts: [{ text: systemPrompt }] }],
             generationConfig: {
               responseMimeType: 'application/json',
-              temperature: 0.4,
+              temperature: 0.3,
             },
           }),
         });
 
         if (geminiRes.ok) {
           const geminiJson = await geminiRes.json();
-          const rawText = geminiJson?.candidates?.[0]?.content?.parts?.[0]?.text;
+          let rawText = geminiJson?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (rawText) {
+            // Strip any code block backticks if present
+            rawText = rawText.replace(/^```json\s*/, '').replace(/```\s*$/, '').trim();
             const parsed = JSON.parse(rawText);
             return new Response(JSON.stringify(parsed), {
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             });
           }
+        } else {
+          console.warn('[EdgeFunction] Gemini API error:', geminiRes.status, await geminiRes.text());
         }
-      } catch (err) {
-        console.warn('[EdgeFunction] Gemini call failed, attempting fallback:', err);
+      } catch (err: any) {
+        console.warn('[EdgeFunction] Gemini call failed, attempting fallback:', err?.message);
       }
     }
 
@@ -175,8 +182,8 @@ Safety Rules:
             });
           }
         }
-      } catch (err) {
-        console.warn('[EdgeFunction] Groq fallback failed:', err);
+      } catch (err: any) {
+        console.warn('[EdgeFunction] Groq fallback failed:', err?.message);
       }
     }
 

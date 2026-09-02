@@ -16,12 +16,14 @@ export const BottomNav: React.FC = () => {
   return (
     <div
       style={{
-        position: 'sticky',
+        position: 'fixed',
         bottom: 0,
         left: 0,
         right: 0,
+        maxWidth: '540px',
+        margin: '0 auto',
         zIndex: 50,
-        padding: '0 12px 10px 12px',
+        padding: '0 12px calc(10px + env(safe-area-inset-bottom, 0px)) 12px',
         pointerEvents: 'none',
       }}
     >

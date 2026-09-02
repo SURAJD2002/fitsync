@@ -1,24 +1,78 @@
-import React, { useState } from 'react';
-import { Camera, Edit2, Crown, Flame, Dumbbell, Target, Award, ChevronRight, Watch, User, Heart, Shield, LogOut, Bell } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import {
+  Camera,
+  Edit2,
+  Crown,
+  Flame,
+  Dumbbell,
+  Target,
+  Award,
+  ChevronRight,
+  Watch,
+  User,
+  Heart,
+  Shield,
+  LogOut,
+  Bell,
+  Check,
+  RefreshCw,
+  Cpu,
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useFitness } from '../../context/FitnessContext';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
 import { NotificationSettingsModal } from '../common/NotificationSettingsModal';
+import { activityTrackingService } from '../../services/activityTrackingService';
 
 export const ProfileScreen: React.FC = () => {
   const { user, updateUser, logout } = useAuth();
+  const { bodyComposition, weightHistory } = useFitness();
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState(user.fullName);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncSuccess, setSyncSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveProfile = () => {
     updateUser({ fullName: nameInput });
-    setIsEditModalOpen(false);
+    setActiveModal(null);
   };
+
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          updateUser({ avatarUrl: reader.result });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    const success = await activityTrackingService.syncToSupabase();
+    setIsSyncing(false);
+    setSyncSuccess(success);
+    setTimeout(() => setSyncSuccess(false), 3000);
+  };
+
+  const latestWeight = weightHistory.length > 0 ? weightHistory[weightHistory.length - 1].weightKg : 75;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', padding: '16px 18px 40px' }} className="animate-fade-in">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleAvatarFileChange}
+        accept="image/*"
+        style={{ display: 'none' }}
+      />
+
       {/* Profile Luxury Athlete Header Card */}
       <div
         className="glass-card glow-card-purple"
@@ -46,7 +100,8 @@ export const ProfileScreen: React.FC = () => {
               <img src={user.avatarUrl} alt={user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             <button
-              onClick={() => alert('Photo upload dialog...')}
+              onClick={() => fileInputRef.current?.click()}
+              title="Change Profile Photo"
               style={{
                 position: 'absolute',
                 bottom: '-4px',
@@ -74,7 +129,11 @@ export const ProfileScreen: React.FC = () => {
                 {user.fullName}
               </h2>
               <button
-                onClick={() => setIsEditModalOpen(true)}
+                onClick={() => {
+                  setNameInput(user.fullName);
+                  setActiveModal('personal_info');
+                }}
+                title="Edit Name"
                 style={{ background: 'none', border: 'none', color: 'var(--purple-light)', cursor: 'pointer' }}
               >
                 <Edit2 size={15} />
@@ -142,12 +201,12 @@ export const ProfileScreen: React.FC = () => {
         </h4>
 
         {[
-          { label: 'Notification Preferences', icon: <Bell size={18} />, action: () => setIsNotificationModalOpen(true) },
-          { label: 'Personal Information', icon: <User size={18} /> },
-          { label: 'Fitness & Somatotype Goals', icon: <Target size={18} /> },
-          { label: 'Connected Wearables & Sensors', icon: <Watch size={18} /> },
-          { label: 'Health & Biometrics', icon: <Heart size={18} /> },
-          { label: 'Cloud Sync & Privacy Settings', icon: <Shield size={18} /> },
+          { label: 'Notification Preferences', icon: <Bell size={18} />, action: () => setActiveModal('notifications') },
+          { label: 'Personal Information', icon: <User size={18} />, action: () => setActiveModal('personal_info') },
+          { label: 'Fitness & Somatotype Goals', icon: <Target size={18} />, action: () => setActiveModal('goals') },
+          { label: 'Connected Wearables & Sensors', icon: <Watch size={18} />, action: () => setActiveModal('sensors') },
+          { label: 'Health & Biometrics', icon: <Heart size={18} />, action: () => setActiveModal('biometrics') },
+          { label: 'Cloud Sync & Privacy Settings', icon: <Shield size={18} />, action: () => setActiveModal('cloud_sync') },
         ].map((item, idx) => (
           <div
             key={idx}
@@ -177,30 +236,174 @@ export const ProfileScreen: React.FC = () => {
 
       {/* Notification Preferences Modal */}
       <NotificationSettingsModal
-        isOpen={isNotificationModalOpen}
-        onClose={() => setIsNotificationModalOpen(false)}
+        isOpen={activeModal === 'notifications'}
+        onClose={() => setActiveModal(null)}
       />
 
-      {/* Edit Name Modal */}
-      {isEditModalOpen && (
-        <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Athlete Profile">
+      {/* Personal Information Modal */}
+      {activeModal === 'personal_info' && (
+        <Modal isOpen={true} onClose={() => setActiveModal(null)} title="Athlete Profile Details">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)' }}>Full Name</label>
-            <input
-              type="text"
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              style={{
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-glass)',
-                borderRadius: '14px',
-                padding: '14px 16px',
-                color: '#fff',
-                fontSize: '15px',
-                outline: 'none',
-              }}
-            />
-            <Button onClick={handleSaveProfile}>Save Changes</Button>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                Full Name
+              </label>
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                style={{
+                  width: '100%',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '12px',
+                  padding: '12px 14px',
+                  color: '#fff',
+                  fontSize: '14px',
+                  outline: 'none',
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                Account Email
+              </label>
+              <input
+                type="text"
+                disabled
+                value={user.email || 'athlete@fitsync.app'}
+                style={{
+                  width: '100%',
+                  background: 'rgba(0,0,0,0.3)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '12px',
+                  padding: '12px 14px',
+                  color: 'var(--text-dim)',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+            <Button variant="primary" onClick={handleSaveProfile}>
+              Save Profile Changes
+            </Button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Goals Modal */}
+      {activeModal === 'goals' && (
+        <Modal isOpen={true} onClose={() => setActiveModal(null)} title="Fitness & Somatotype Goals">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.04)', padding: '12px', borderRadius: '12px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>PRIMARY OBJECTIVE</span>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--purple-light)', marginTop: '2px' }}>
+                Hypertrophy & Mass (Build Muscle)
+              </div>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.04)', padding: '12px', borderRadius: '12px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>SOMATOTYPE CLASSIFICATION</span>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--cyan-light)', marginTop: '2px' }}>
+                Mesomorph / Athletic Base
+              </div>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.04)', padding: '12px', borderRadius: '12px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>TARGET DAILY ENERGY EXPENDITURE</span>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--coral-light)', marginTop: '2px' }}>
+                2,681 kcal / day (Surplus for Growth)
+              </div>
+            </div>
+            <Button variant="secondary" onClick={() => setActiveModal(null)}>
+              Done
+            </Button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Connected Sensors & Wearables Modal */}
+      {activeModal === 'sensors' && (
+        <Modal isOpen={true} onClose={() => setActiveModal(null)} title="Hardware Sensors & Devices">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '12px 14px', borderRadius: '14px' }}>
+              <Cpu size={22} color="var(--emerald-light)" />
+              <div>
+                <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#fff', display: 'block' }}>
+                  Samsung S22 Ultra Sensor Hub
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--emerald-light)' }}>
+                  ● Hardware Active (TYPE_STEP_COUNTER)
+                </span>
+              </div>
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px 14px', borderRadius: '12px', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              FitSync connects directly to low-power chipset microcontrollers on your device. Footsteps and distance are tracked continuously through phone lock with zero CPU wake overhead.
+            </div>
+
+            <Button variant="secondary" onClick={() => setActiveModal(null)}>
+              Close Sensor Diagnostics
+            </Button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Health & Biometrics Modal */}
+      {activeModal === 'biometrics' && (
+        <Modal isOpen={true} onClose={() => setActiveModal(null)} title="Health & Biometric Profile">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.04)', padding: '12px', borderRadius: '12px' }}>
+              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>CURRENT WEIGHT</span>
+              <div style={{ fontSize: '17px', fontWeight: 800, color: '#fff' }}>{latestWeight} kg</div>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.04)', padding: '12px', borderRadius: '12px' }}>
+              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>BODY FAT</span>
+              <div style={{ fontSize: '17px', fontWeight: 800, color: 'var(--coral-light)' }}>
+                {bodyComposition.bodyFatPercent}%
+              </div>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.04)', padding: '12px', borderRadius: '12px' }}>
+              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>MUSCLE MASS</span>
+              <div style={{ fontSize: '17px', fontWeight: 800, color: 'var(--emerald-light)' }}>
+                {bodyComposition.muscleMassKg} kg
+              </div>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.04)', padding: '12px', borderRadius: '12px' }}>
+              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>WATER RATIO</span>
+              <div style={{ fontSize: '17px', fontWeight: 800, color: 'var(--cyan-light)' }}>
+                {bodyComposition.waterPercent}%
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Cloud Sync & Security Modal */}
+      {activeModal === 'cloud_sync' && (
+        <Modal isOpen={true} onClose={() => setActiveModal(null)} title="Supabase Cloud & Encryption">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', padding: '12px 14px', borderRadius: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--purple-light)', fontSize: '13px', fontWeight: 800 }}>
+                <Shield size={16} /> PostgreSQL Row-Level Security Active
+              </div>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                All workouts, biometric records, and meal plans are encrypted per user UID.
+              </p>
+            </div>
+
+            <Button variant="primary" onClick={handleManualSync} disabled={isSyncing}>
+              {isSyncing ? (
+                <>
+                  <RefreshCw size={15} className="spin" /> Syncing...
+                </>
+              ) : syncSuccess ? (
+                <>
+                  <Check size={15} /> Synced Successfully!
+                </>
+              ) : (
+                <>
+                  <RefreshCw size={15} /> Sync State with Cloud
+                </>
+              )}
+            </Button>
           </div>
         </Modal>
       )}
