@@ -18,6 +18,7 @@ interface FitnessContextType {
   toggleExerciseCompletion: (exerciseId: string) => void;
   toggleSetCompletion: (exerciseId: string, setNumber: number) => void;
   dietPlan: DietPlan;
+  setDietPlan: (plan: DietPlan) => void;
   incrementWaterIntake: () => void;
   setWaterIntake: (glasses: number) => void;
   weightHistory: WeightDataPoint[];
@@ -36,13 +37,18 @@ const FitnessContext = createContext<FitnessContextType | undefined>(undefined);
 export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<MainTab>('home');
   const [workout, setWorkout] = useState<Workout>(FitnessService.getWorkout());
-  const [dietPlan, setDietPlan] = useState<DietPlan>(FitnessService.getDietPlan());
+  const [dietPlan, setDietPlanState] = useState<DietPlan>(FitnessService.getDietPlan());
   const [weightHistory, setWeightHistory] = useState<WeightDataPoint[]>(FitnessService.getWeightHistory());
   const [bodyComposition] = useState<BodyComposition>(FitnessService.getBodyComposition());
   const [progressPhotos] = useState<ProgressPhoto[]>(FitnessService.getProgressPhotos());
   const [achievements] = useState<Achievement[]>(FitnessService.getAchievements());
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState<boolean>(false);
   const [dietViewMode, setDietViewMode] = useState<'overview' | 'detailed'>('overview');
+
+  const setDietPlan = (plan: DietPlan) => {
+    setDietPlanState(plan);
+    FitnessService.saveDietPlan(plan);
+  };
 
   const toggleExerciseCompletion = (exerciseId: string) => {
     const updated = FitnessService.toggleExerciseCompletion(exerciseId);
@@ -56,12 +62,12 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const incrementWaterIntake = () => {
     const updated = FitnessService.incrementWaterIntake();
-    setDietPlan(updated);
+    setDietPlanState(updated);
   };
 
   const setWaterIntake = (glasses: number) => {
     const updated = FitnessService.setWaterIntake(glasses);
-    setDietPlan(updated);
+    setDietPlanState(updated);
   };
 
   const logNewWeight = (weightKg: number, dateLabel: string) => {
@@ -78,6 +84,7 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
         toggleExerciseCompletion,
         toggleSetCompletion,
         dietPlan,
+        setDietPlan,
         incrementWaterIntake,
         setWaterIntake,
         weightHistory,

@@ -1,13 +1,29 @@
-import React, { useState } from 'react';
-import { Droplets, ChevronRight, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Droplets, ChevronRight, Sparkles, ChefHat, WifiOff } from 'lucide-react';
 import { useFitness } from '../../context/FitnessContext';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { AIMealPlannerModal } from './AIMealPlannerModal';
 
 export const DietScreen: React.FC = () => {
   const { dietPlan, setWaterIntake, dietViewMode, setDietViewMode } = useFitness();
   const [subTab, setSubTab] = useState<'overview' | 'meal_plan' | 'recipes' | 'nutrition'>('overview');
   const [editingMeal, setEditingMeal] = useState<any | null>(null);
+  const [isAIModalOpen, setIsAIModalOpen] = useState<boolean>(false);
+  const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const totalCaloriesConsumed = dietPlan.meals.reduce((sum, m) => sum + m.calories, 0);
   const totalProteinConsumed = dietPlan.meals.reduce((sum, m) => sum + m.proteinGrams, 0);
@@ -19,6 +35,27 @@ export const DietScreen: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', padding: '16px 18px 30px' }} className="animate-fade-in">
+      {/* Offline Status Alert Banner */}
+      {!isOnline && (
+        <div
+          style={{
+            background: 'rgba(239, 68, 68, 0.15)',
+            border: '1px solid rgba(239, 68, 68, 0.4)',
+            borderRadius: '16px',
+            padding: '10px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            color: '#fca5a5',
+            fontSize: '12px',
+            fontWeight: 700,
+          }}
+        >
+          <WifiOff size={16} />
+          <span>Offline Mode: FitSync Authoritative Local Engine is active.</span>
+        </div>
+      )}
+
       {/* Sub Navigation Bar & View Toggle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
         <div className="sub-tabs-container" style={{ flex: 1 }}>
@@ -47,7 +84,7 @@ export const DietScreen: React.FC = () => {
         </button>
       </div>
 
-      {/* Hero AI Diet Plan Card */}
+      {/* Hero AI Diet Plan Card with AI Launcher */}
       <div
         className="glass-card glow-card-emerald"
         style={{
@@ -64,13 +101,13 @@ export const DietScreen: React.FC = () => {
               AI Nutrition Engine
             </span>
           </div>
-          <span className="badge-pill badge-green">8 Weeks Plan</span>
+          <span className="badge-pill badge-green">Mifflin-St Jeor Validated</span>
         </div>
 
         <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#fff', marginBottom: '4px', letterSpacing: '-0.02em', fontFamily: 'var(--font-heading)' }}>
           {dietPlan.title}
         </h2>
-        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '14px' }}>
           Target: <strong>{dietPlan.dailyCaloriesTarget} kcal</strong> • {dietPlan.goal}
         </p>
 
@@ -85,6 +122,7 @@ export const DietScreen: React.FC = () => {
             padding: '14px 10px',
             borderRadius: '18px',
             textAlign: 'center',
+            marginBottom: '14px',
           }}
         >
           <div>
@@ -104,6 +142,29 @@ export const DietScreen: React.FC = () => {
             <span style={{ fontSize: '15px', fontWeight: 900, color: '#fbbf24' }}>{dietPlan.fatsTarget}g</span>
           </div>
         </div>
+
+        <button
+          onClick={() => setIsAIModalOpen(true)}
+          style={{
+            background: 'var(--gradient-emerald)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '14px',
+            padding: '11px 18px',
+            fontWeight: 800,
+            fontSize: '13px',
+            fontFamily: 'var(--font-heading)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(16, 185, 129, 0.3)',
+            transition: 'transform 0.15s ease',
+          }}
+        >
+          <ChefHat size={16} />
+          <span>Generate with AI Chef</span>
+        </button>
       </div>
 
       {/* Today's Macro Budget & Caloric Balance */}
@@ -316,6 +377,12 @@ export const DietScreen: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      {/* AI Meal Planner Modal */}
+      <AIMealPlannerModal
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+      />
     </div>
   );
 };
