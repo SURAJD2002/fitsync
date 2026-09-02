@@ -23,7 +23,7 @@ export const SignUpForm: React.FC = () => {
   const isPhoneValid = validatePhone(phoneNumber);
   const isConfirmMatch = confirmPassword.length > 0 && confirmPassword === password;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isNameValid) {
       setErrorMsg('Please enter your full name.');
@@ -51,8 +51,12 @@ export const SignUpForm: React.FC = () => {
     }
 
     setErrorMsg('');
-    signup(fullName, email, phoneNumber, countryCode);
+    const res = await signup(fullName, email, phoneNumber, countryCode, password);
+    if (!res.success && res.error) {
+      setErrorMsg(res.error);
+    }
   };
+
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-dark)', padding: '16px 20px 40px', position: 'relative' }}>

@@ -1,6 +1,7 @@
 import type { User, BodyProfile } from '../types';
 import { INITIAL_USER, INITIAL_BODY_PROFILE } from '../data/mockFitnessData';
 import { SafeStorage, STORAGE_KEYS } from './storage';
+import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 export interface PasswordValidation {
   hasMinLength: boolean;
@@ -39,6 +40,33 @@ export class AuthService {
 
   static saveUser(user: User): void {
     SafeStorage.set(STORAGE_KEYS.USER_DATA, user);
+
+    // Sync with Supabase if configured and user is authenticated
+    if (isSupabaseConfigured()) {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data?.user?.id) {
+          supabase
+            .from('profiles')
+            .upsert({
+              id: data.user.id,
+              full_name: user.fullName,
+              email: user.email,
+              phone_number: user.phoneNumber,
+              country_code: user.countryCode,
+              avatar_url: user.avatarUrl,
+              is_premium: user.isPremium,
+              streak_days: user.streakDays,
+              completed_workouts_count: user.completedWorkoutsCount,
+              goal_progress_percent: user.goalProgressPercent,
+              achievements_count: user.achievementsCount,
+              updated_at: new Date().toISOString(),
+            })
+            .then(({ error }) => {
+              if (error) console.warn('[AuthService] Profile sync error:', error.message);
+            });
+        }
+      });
+    }
   }
 
   static getBodyProfile(): BodyProfile {
@@ -47,6 +75,31 @@ export class AuthService {
 
   static saveBodyProfile(profile: BodyProfile): void {
     SafeStorage.set(STORAGE_KEYS.BODY_PROFILE, profile);
+
+    // Sync with Supabase if configured
+    if (isSupabaseConfigured()) {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data?.user?.id) {
+          supabase
+            .from('body_profiles')
+            .upsert({
+              id: data.user.id,
+              age: profile.age,
+              gender: profile.gender,
+              height: profile.height,
+              weight: profile.weight,
+              body_type: profile.bodyType,
+              unit: profile.unit,
+              measurements: profile.measurements,
+              photos: profile.photos,
+              updated_at: new Date().toISOString(),
+            })
+            .then(({ error }) => {
+              if (error) console.warn('[AuthService] Body profile sync error:', error.message);
+            });
+        }
+      });
+    }
   }
 
   static isAuthenticated(): boolean {
@@ -58,8 +111,46 @@ export class AuthService {
     SafeStorage.set(STORAGE_KEYS.AUTH_TOKEN, token);
   }
 
-  static logout(): void {
+  static async logout(): Promise<void> {
     SafeStorage.remove(STORAGE_KEYS.AUTH_TOKEN);
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.warn('[AuthService] Supabase signOut error:', err);
+      }
+    }
+  }
+
+  // Cloud Supabase Authentication Handlers
+  static async signUp(email: string, pass: string, fullName: string, phone: string, country: string) {
+    if (!isSupabaseConfigured()) {
+      this.setAuthenticated();
+      return { data: { session: null, user: { id: 'mock-user-id', email } }, error: null };
+    }
+
+    return await supabase.auth.signUp({
+      email,
+      password: pass,
+      options: {
+        data: {
+          full_name: fullName,
+          phone_number: phone,
+          country_code: country,
+        },
+      },
+    });
+  }
+
+  static async login(email: string, pass: string) {
+    if (!isSupabaseConfigured()) {
+      this.setAuthenticated();
+      return { data: { session: null, user: { id: 'mock-user-id', email } }, error: null };
+    }
+
+    return await supabase.auth.signInWithPassword({
+      email,
+      password: pass,
+    });
   }
 }
-

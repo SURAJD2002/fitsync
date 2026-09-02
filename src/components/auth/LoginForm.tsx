@@ -10,7 +10,7 @@ export const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('Password123!');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailOrPhone.trim()) {
       setErrorMsg('Please enter your email or phone number.');
@@ -22,8 +22,12 @@ export const LoginForm: React.FC = () => {
     }
 
     setErrorMsg('');
-    login(emailOrPhone, password);
+    const res = await login(emailOrPhone, password);
+    if (!res.success && res.error) {
+      setErrorMsg(res.error);
+    }
   };
+
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-dark)', padding: '16px 20px 40px', position: 'relative' }}>

@@ -1,14 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User, BodyProfile, AuthMode } from '../types';
 import { AuthService } from '../services/authService';
+import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 
 interface AuthContextType {
   authMode: AuthMode;
   setAuthMode: (mode: AuthMode) => void;
   user: User;
   bodyProfile: BodyProfile;
-  login: (emailOrPhone: string, pass: string) => Promise<boolean>;
-  signup: (name: string, email: string, phone: string, country: string) => Promise<boolean>;
+  login: (emailOrPhone: string, pass?: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (name: string, email: string, phone: string, country: string, pass?: string) => Promise<{ success: boolean; error?: string }>;
   saveOnboardingProfile: (profile: BodyProfile) => void;
   logout: () => void;
   updateUser: (updated: Partial<User>) => void;
@@ -19,29 +20,94 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User>(AuthService.getUser());
   const [bodyProfile, setBodyProfile] = useState<BodyProfile>(AuthService.getBodyProfile());
-  const [authMode, setAuthMode] = useState<AuthMode>('signup'); // Default to Sign Up per PDF Page 1
+  const [authMode, setAuthMode] = useState<AuthMode>('signup');
 
   useEffect(() => {
     if (AuthService.isAuthenticated()) {
       setAuthMode('app');
     }
+
+    if (isSupabaseConfigured()) {
+      // Listen to real-time auth state changes
+      const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+        if (session?.user) {
+          AuthService.setAuthenticated(session.access_token);
+          setAuthMode('app');
+
+          // Fetch full user profile from Supabase
+          supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
+            .then(({ data: profileData }) => {
+              if (profileData) {
+                setUser((prev) => {
+                  const updatedUser: User = {
+                    ...prev,
+                    id: profileData.id,
+                    fullName: profileData.full_name || prev.fullName,
+                    email: profileData.email || session.user.email || prev.email,
+                    phoneNumber: profileData.phone_number || prev.phoneNumber,
+                    countryCode: profileData.country_code || prev.countryCode,
+                    avatarUrl: profileData.avatar_url || prev.avatarUrl,
+                    isPremium: profileData.is_premium ?? prev.isPremium,
+                    streakDays: profileData.streak_days ?? prev.streakDays,
+                  };
+                  AuthService.saveUser(updatedUser);
+                  return updatedUser;
+                });
+              }
+            });
+        } else if (event === 'SIGNED_OUT') {
+          AuthService.logout();
+          setAuthMode('login');
+        }
+      });
+
+      return () => {
+        authListener?.subscription.unsubscribe();
+      };
+    }
   }, []);
 
-  const login = async (emailOrPhone: string): Promise<boolean> => {
-    AuthService.setAuthenticated();
+  const login = async (emailOrPhone: string, pass: string = 'FitSync#2026'): Promise<{ success: boolean; error?: string }> => {
+    if (isSupabaseConfigured()) {
+      const { data, error } = await AuthService.login(emailOrPhone, pass);
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      if (data && 'session' in data && data.session) {
+        AuthService.setAuthenticated((data.session as any).access_token);
+      }
+    } else {
+      AuthService.setAuthenticated();
+    }
+
     const updated = { ...user, email: emailOrPhone };
     setUser(updated);
     AuthService.saveUser(updated);
     setAuthMode('app');
-    return true;
+    return { success: true };
   };
 
   const signup = async (
     fullName: string,
     email: string,
     phoneNumber: string,
-    countryCode: string
-  ): Promise<boolean> => {
+    countryCode: string,
+    pass: string = 'FitSync#2026'
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (isSupabaseConfigured()) {
+      const { data, error } = await AuthService.signUp(email, pass, fullName, phoneNumber, countryCode);
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      if (data && 'session' in data && data.session) {
+        AuthService.setAuthenticated((data.session as any).access_token);
+      }
+    }
+
     const newUser: User = {
       ...user,
       fullName,
@@ -52,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(newUser);
     AuthService.saveUser(newUser);
     setAuthMode('onboarding');
-    return true;
+    return { success: true };
   };
 
   const saveOnboardingProfile = (profile: BodyProfile) => {

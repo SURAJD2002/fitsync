@@ -16,6 +16,7 @@ import {
   INITIAL_ACHIEVEMENTS,
 } from '../data/mockFitnessData';
 import { SafeStorage, STORAGE_KEYS } from './storage';
+import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 export class FitnessService {
   static getWorkout(): Workout {
@@ -24,6 +25,28 @@ export class FitnessService {
 
   static saveWorkout(workout: Workout): void {
     SafeStorage.set(STORAGE_KEYS.ACTIVE_WORKOUT, workout);
+
+    if (isSupabaseConfigured()) {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data?.user?.id) {
+          supabase
+            .from('workouts')
+            .upsert({
+              user_id: data.user.id,
+              title: workout.title,
+              level: workout.level,
+              duration_mins: workout.durationMins,
+              target_calories: workout.targetCalories,
+              focus_areas: workout.focusAreas,
+              exercises: workout.exercises,
+              updated_at: new Date().toISOString(),
+            })
+            .then(({ error }) => {
+              if (error) console.warn('[FitnessService] Workout sync error:', error.message);
+            });
+        }
+      });
+    }
   }
 
   static toggleExerciseCompletion(exerciseId: string): Workout {
@@ -66,6 +89,33 @@ export class FitnessService {
 
   static saveDietPlan(diet: DietPlan): void {
     SafeStorage.set(STORAGE_KEYS.ACTIVE_DIET, diet);
+
+    if (isSupabaseConfigured()) {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data?.user?.id) {
+          supabase
+            .from('diet_plans')
+            .upsert({
+              user_id: data.user.id,
+              title: diet.title,
+              goal: diet.goal,
+              duration_weeks: diet.durationWeeks,
+              daily_calories_target: diet.dailyCaloriesTarget,
+              protein_target: diet.proteinTarget,
+              carbs_target: diet.carbsTarget,
+              fats_target: diet.fatsTarget,
+              fiber_target: diet.fiberTarget,
+              water_target_glasses: diet.waterTargetGlasses,
+              water_glasses_drunk: diet.waterGlassesDrunk,
+              meals: diet.meals,
+              updated_at: new Date().toISOString(),
+            })
+            .then(({ error }) => {
+              if (error) console.warn('[FitnessService] Diet sync error:', error.message);
+            });
+        }
+      });
+    }
   }
 
   /**
@@ -150,6 +200,26 @@ export class FitnessService {
 
     const updated = [...current, newPoint];
     SafeStorage.set(STORAGE_KEYS.WEIGHT_HISTORY, updated);
+
+    // Sync to Supabase weight_logs table if configured
+    if (isSupabaseConfigured()) {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data?.user?.id) {
+          supabase
+            .from('weight_logs')
+            .insert({
+              user_id: data.user.id,
+              weight_kg: newPoint.weightKg,
+              recorded_at: newPoint.recordedAt,
+              date_label: newPoint.date,
+            })
+            .then(({ error }) => {
+              if (error) console.warn('[FitnessService] Weight log cloud sync error:', error.message);
+            });
+        }
+      });
+    }
+
     return updated;
   }
 
