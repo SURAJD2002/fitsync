@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import type {
   Workout,
   DietPlan,
@@ -8,6 +8,7 @@ import type {
   Achievement,
 } from '../types';
 import { FitnessService } from '../services/fitnessService';
+import { activityTrackingService, type ActivityTrackingState, type DailyActivityRecord } from '../services/activityTrackingService';
 
 export type MainTab = 'home' | 'workout' | 'diet' | 'progress' | 'profile';
 
@@ -30,6 +31,17 @@ interface FitnessContextType {
   setIsWorkoutModalOpen: (open: boolean) => void;
   dietViewMode: 'overview' | 'detailed';
   setDietViewMode: (mode: 'overview' | 'detailed') => void;
+
+  // Native Activity & Step Tracking v1
+  stepsToday: number;
+  distanceKmToday: number;
+  activeMinutesToday: number;
+  activityCaloriesToday: number;
+  isActivityTrackingAvailable: boolean;
+  isActivityTrackingActive: boolean;
+  activityPermissionGranted: boolean;
+  requestActivityPermission: () => Promise<boolean>;
+  activityHistory: Record<string, DailyActivityRecord>;
 }
 
 const FitnessContext = createContext<FitnessContextType | undefined>(undefined);
@@ -44,6 +56,39 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [achievements] = useState<Achievement[]>(FitnessService.getAchievements());
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState<boolean>(false);
   const [dietViewMode, setDietViewMode] = useState<'overview' | 'detailed'>('overview');
+
+  // Activity Tracking State
+  const [activityState, setActivityState] = useState<ActivityTrackingState>(activityTrackingService.getState());
+  const [isAvailable, setIsAvailable] = useState<boolean>(true);
+  const [isTracking, setIsTracking] = useState<boolean>(false);
+  const [permissionGranted, setPermissionGranted] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Subscribe to activity service state updates
+    const unsubscribe = activityTrackingService.subscribe((newState) => {
+      setActivityState(newState);
+    });
+
+    // Initialize native sensors on mount
+    activityTrackingService.initialize().then((res) => {
+      setIsAvailable(res.isAvailable);
+      setPermissionGranted(res.granted);
+      setIsTracking(res.isTracking);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const requestActivityPermission = async (): Promise<boolean> => {
+    const granted = await activityTrackingService.requestPermissionAndStart();
+    setPermissionGranted(granted);
+    if (granted) {
+      setIsTracking(true);
+    }
+    return granted;
+  };
 
   const setDietPlan = (plan: DietPlan) => {
     setDietPlanState(plan);
@@ -96,6 +141,17 @@ export const FitnessProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsWorkoutModalOpen,
         dietViewMode,
         setDietViewMode,
+
+        // Native Activity Tracking
+        stepsToday: activityState.todaySteps,
+        distanceKmToday: activityState.distanceKm,
+        activeMinutesToday: activityState.activeMinutes,
+        activityCaloriesToday: activityState.caloriesBurned,
+        isActivityTrackingAvailable: isAvailable,
+        isActivityTrackingActive: isTracking,
+        activityPermissionGranted: permissionGranted,
+        requestActivityPermission,
+        activityHistory: activityState.history,
       }}
     >
       {children}

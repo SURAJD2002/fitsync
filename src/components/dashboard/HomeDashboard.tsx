@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
-import { Flame, Timer, Footprints, Target, Play, Sparkles, Dumbbell, Utensils, Heart, Activity, Zap, Droplets, ChevronRight } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { Flame, Timer, Footprints, Target, Play, Sparkles, Dumbbell, Heart, Activity, Zap, Droplets, Utensils, ChevronRight } from 'lucide-react';
 import { useFitness } from '../../context/FitnessContext';
 import { MetricCard } from '../common/MetricCard';
 
 export const HomeDashboard: React.FC = () => {
-  const { user } = useAuth();
-  const { workout, dietPlan, setActiveTab, setIsWorkoutModalOpen, setWaterIntake } = useFitness();
+  const {
+    workout,
+    dietPlan,
+    setActiveTab,
+    setIsWorkoutModalOpen,
+    setWaterIntake,
+    stepsToday,
+    distanceKmToday,
+    activeMinutesToday,
+    activityCaloriesToday,
+    isActivityTrackingAvailable,
+    isActivityTrackingActive,
+    activityPermissionGranted,
+    requestActivityPermission,
+  } = useFitness();
   const [selectedGoal, setSelectedGoal] = useState<string>('build_muscle');
   const [planTab, setPlanTab] = useState<'workout' | 'diet' | 'routine'>('workout');
 
@@ -21,6 +33,7 @@ export const HomeDashboard: React.FC = () => {
   const waterGlasses = dietPlan.waterGlassesDrunk ?? 0;
   const waterTarget = dietPlan.waterTargetGlasses || 8;
   const waterPercent = Math.min(100, Math.round((waterGlasses / waterTarget) * 100));
+  const totalCaloriesBurned = (workout.targetCalories || 380) + activityCaloriesToday;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', padding: '16px 18px 28px' }} className="animate-fade-in">
@@ -174,6 +187,96 @@ export const HomeDashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Hardware Activity Tracker Status Card */}
+      <div
+        className="glass-card glow-card-coral"
+        style={{
+          padding: '18px 20px',
+          borderRadius: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '12px',
+                background: 'rgba(6, 182, 212, 0.18)',
+                border: '1px solid rgba(6, 182, 212, 0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--cyan-light)',
+              }}
+            >
+              <Footprints size={20} />
+            </div>
+            <div>
+              <span style={{ fontSize: '15px', fontWeight: 800, color: '#fff', display: 'block' }}>
+                Hardware Step Tracking
+              </span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                Automatic background pedometer
+              </span>
+            </div>
+          </div>
+
+          <div>
+            {isActivityTrackingActive ? (
+              <span className="badge-pill badge-green">● Hardware Active</span>
+            ) : activityPermissionGranted ? (
+              <span className="badge-pill badge-cyan">● Sensor Ready</span>
+            ) : isActivityTrackingAvailable ? (
+              <button
+                onClick={requestActivityPermission}
+                style={{
+                  background: 'var(--gradient-cyan-purple)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '99px',
+                  padding: '6px 12px',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 10px rgba(6, 182, 212, 0.3)',
+                }}
+              >
+                Enable Tracking
+              </button>
+            ) : (
+              <span className="badge-pill" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--text-dim)' }}>
+                Offline Fallback
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', paddingTop: '4px' }}>
+          <div style={{ background: 'rgba(0,0,0,0.25)', padding: '10px', borderRadius: '12px', textAlign: 'center' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>STEPS</span>
+            <span style={{ fontSize: '18px', fontWeight: 900, color: '#fff', fontFamily: 'var(--font-heading)' }}>
+              {stepsToday.toLocaleString()}
+            </span>
+          </div>
+          <div style={{ background: 'rgba(0,0,0,0.25)', padding: '10px', borderRadius: '12px', textAlign: 'center' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>DISTANCE</span>
+            <span style={{ fontSize: '18px', fontWeight: 900, color: 'var(--cyan-light)', fontFamily: 'var(--font-heading)' }}>
+              {distanceKmToday} <span style={{ fontSize: '11px' }}>km</span>
+            </span>
+          </div>
+          <div style={{ background: 'rgba(0,0,0,0.25)', padding: '10px', borderRadius: '12px', textAlign: 'center' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>ACTIVE TIME</span>
+            <span style={{ fontSize: '18px', fontWeight: 900, color: 'var(--emerald-light)', fontFamily: 'var(--font-heading)' }}>
+              {activeMinutesToday} <span style={{ fontSize: '11px' }}>min</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Today's Metabolic Overview Grid */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -184,26 +287,26 @@ export const HomeDashboard: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <MetricCard
             icon={<Flame size={19} />}
-            value="480"
+            value={`${totalCaloriesBurned}`}
             label="Calories Burned"
             accentColor="var(--coral-primary)"
           />
           <MetricCard
             icon={<Timer size={19} />}
-            value={`${workout.durationMins || 45}m`}
-            label="Active Workout"
+            value={`${(workout.durationMins || 45) + activeMinutesToday}m`}
+            label="Total Active Time"
             accentColor="var(--emerald-primary)"
           />
           <MetricCard
             icon={<Footprints size={19} />}
-            value="10,240"
+            value={stepsToday.toLocaleString()}
             label="Steps Tracked"
             accentColor="var(--cyan-primary)"
           />
           <MetricCard
             icon={<Target size={19} />}
-            value={`${user.goalProgressPercent || 68}%`}
-            label="Weekly Target"
+            value={`${Math.min(100, Math.round((stepsToday / 10000) * 100))}%`}
+            label="Daily 10k Goal"
             accentColor="var(--purple-primary)"
           />
         </div>
