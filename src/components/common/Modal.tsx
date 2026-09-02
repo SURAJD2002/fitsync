@@ -29,7 +29,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
       <div
         style={{
           width: '100%',
-          maxWidth: '400px',
+          maxWidth: '480px',
           background: 'var(--bg-card)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-xl)',
@@ -37,7 +37,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          maxHeight: '90vh',
+          maxHeight: '90dvh',
         }}
         onClick={(e) => e.stopPropagation()}
       >

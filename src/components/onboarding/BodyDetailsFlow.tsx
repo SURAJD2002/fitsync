@@ -48,7 +48,7 @@ export const BodyDetailsFlow: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 60%), var(--bg-dark)', padding: '16px 18px 40px' }} className="animate-fade-in">
+    <div style={{ minHeight: '100dvh', width: '100%', background: 'radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 60%), var(--bg-dark)', padding: '16px 18px 40px' }} className="animate-fade-in">
       {/* Top Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <button

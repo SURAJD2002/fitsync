@@ -92,6 +92,8 @@ html, body {
   color: var(--text-main);
   font-family: var(--font-family);
   min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
   overflow-x: hidden;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -100,9 +102,11 @@ html, body {
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: stretch;
   background-color: var(--bg-dark);
 }
 
@@ -156,18 +160,27 @@ h1, h2, h3, h4, h5, .font-heading {
   -webkit-text-fill-color: transparent;
 }
 
-/* App Container Frame */
-.fitsync-app-container {
+/* Native Mobile Full-Bleed App Shell */
+.fitsync-app-shell {
   width: 100%;
-  max-width: 440px;
   min-height: 100vh;
+  min-height: 100dvh;
   background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 70%), var(--bg-dark);
   position: relative;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0 80px rgba(0, 0, 0, 0.9), 0 0 30px rgba(139, 92, 246, 0.12);
-  overflow-x: hidden;
   margin: 0 auto;
+  overflow-x: hidden;
+}
+
+/* Responsive Desktop Preview without fake device bezel */
+@media (min-width: 1024px) {
+  .fitsync-app-shell {
+    max-width: 540px;
+    border-left: 1px solid var(--border-subtle);
+    border-right: 1px solid var(--border-subtle);
+    box-shadow: 0 0 80px rgba(0, 0, 0, 0.9);
+  }
 }
 
 /* Luxury Glass Card */
