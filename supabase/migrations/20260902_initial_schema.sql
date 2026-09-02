@@ -2,6 +2,7 @@
 -- FitSync Complete PostgreSQL Database Schema & Row-Level Security (RLS)
 -- Project: FitSync SaaS Backend
 -- Target: Supabase (https://dwaatpdaqjnqhfodduxp.supabase.co)
+-- Standard: Supabase & Postgres Best Practices
 -- ==============================================================================
 
 -- 1. PROFILES TABLE (Extends auth.users)
@@ -63,6 +64,8 @@ CREATE TABLE IF NOT EXISTS public.workouts (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE INDEX IF NOT EXISTS idx_workouts_user_id ON public.workouts (user_id);
+
 -- 5. DIET PLANS TABLE (Macro budgets, Hydration, and Meals)
 CREATE TABLE IF NOT EXISTS public.diet_plans (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -81,8 +84,10 @@ CREATE TABLE IF NOT EXISTS public.diet_plans (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE INDEX IF NOT EXISTS idx_diet_plans_user_id ON public.diet_plans (user_id);
+
 -- ==============================================================================
--- ROW LEVEL SECURITY (RLS) POLICIES
+-- ROW LEVEL SECURITY (RLS) POLICIES (Optimized with (SELECT auth.uid()))
 -- ==============================================================================
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -92,46 +97,59 @@ ALTER TABLE public.workouts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.diet_plans ENABLE ROW LEVEL SECURITY;
 
 -- Profiles: Users can view and update their own profile
+DROP POLICY IF EXISTS "Users can read own profile" ON public.profiles;
 CREATE POLICY "Users can read own profile" ON public.profiles
-    FOR SELECT USING (auth.uid() = id);
+    FOR SELECT USING ((SELECT auth.uid()) = id);
 
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" ON public.profiles
-    FOR UPDATE USING (auth.uid() = id);
+    FOR UPDATE USING ((SELECT auth.uid()) = id);
 
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
 CREATE POLICY "Users can insert own profile" ON public.profiles
-    FOR INSERT WITH CHECK (auth.uid() = id);
+    FOR INSERT WITH CHECK ((SELECT auth.uid()) = id);
 
 -- Body Profiles: Users can access their body metrics
+DROP POLICY IF EXISTS "Users can read own body profile" ON public.body_profiles;
 CREATE POLICY "Users can read own body profile" ON public.body_profiles
-    FOR SELECT USING (auth.uid() = id);
+    FOR SELECT USING ((SELECT auth.uid()) = id);
 
+DROP POLICY IF EXISTS "Users can update own body profile" ON public.body_profiles;
 CREATE POLICY "Users can update own body profile" ON public.body_profiles
-    FOR ALL USING (auth.uid() = id);
+    FOR ALL USING ((SELECT auth.uid()) = id);
 
 -- Weight Logs: Users can manage their weigh-in logs
+DROP POLICY IF EXISTS "Users can read own weight logs" ON public.weight_logs;
 CREATE POLICY "Users can read own weight logs" ON public.weight_logs
-    FOR SELECT USING (auth.uid() = user_id);
+    FOR SELECT USING ((SELECT auth.uid()) = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own weight logs" ON public.weight_logs;
 CREATE POLICY "Users can insert own weight logs" ON public.weight_logs
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
+    FOR INSERT WITH CHECK ((SELECT auth.uid()) = user_id);
 
+DROP POLICY IF EXISTS "Users can delete own weight logs" ON public.weight_logs;
 CREATE POLICY "Users can delete own weight logs" ON public.weight_logs
-    FOR DELETE USING (auth.uid() = user_id);
+    FOR DELETE USING ((SELECT auth.uid()) = user_id);
 
 -- Workouts: Users can manage their workouts
+DROP POLICY IF EXISTS "Users can manage own workouts" ON public.workouts;
 CREATE POLICY "Users can manage own workouts" ON public.workouts
-    FOR ALL USING (auth.uid() = user_id);
+    FOR ALL USING ((SELECT auth.uid()) = user_id);
 
 -- Diet Plans: Users can manage their diet & hydration
+DROP POLICY IF EXISTS "Users can manage own diet plans" ON public.diet_plans;
 CREATE POLICY "Users can manage own diet plans" ON public.diet_plans
-    FOR ALL USING (auth.uid() = user_id);
+    FOR ALL USING ((SELECT auth.uid()) = user_id);
 
 -- ==============================================================================
--- AUTOMATIC PROFILE CREATION TRIGGER ON SIGNUP
+-- AUTOMATIC PROFILE CREATION TRIGGER ON SIGNUP (Secured with search_path)
 -- ==============================================================================
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
     INSERT INTO public.profiles (id, full_name, email, phone_number)
     VALUES (
@@ -148,7 +166,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql;
 
 -- Trigger execution on auth.users insert
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
