@@ -133,6 +133,16 @@ export interface BodyComposition {
 }
 
 export interface WeightDataPoint {
-  date: string;
+  id?: string;
+  recordedAt?: string; // ISO-8601 string
+  date: string; // Formatted date label for backward compatibility
   weightKg: number;
 }
+
+export interface ActiveWorkoutSession {
+  workoutId: string;
+  activeExerciseIdx: number;
+  startedAt: string; // ISO-8601 timestamp
+  isModalOpen: boolean;
+}
+

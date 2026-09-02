@@ -1,9 +1,6 @@
 import type { User, BodyProfile } from '../types';
 import { INITIAL_USER, INITIAL_BODY_PROFILE } from '../data/mockFitnessData';
-
-const USER_STORAGE_KEY = 'fitsync_user_data';
-const PROFILE_STORAGE_KEY = 'fitsync_body_profile';
-const AUTH_TOKEN_KEY = 'fitsync_auth_token';
+import { SafeStorage, STORAGE_KEYS } from './storage';
 
 export interface PasswordValidation {
   hasMinLength: boolean;
@@ -37,46 +34,32 @@ export function validatePhone(phone: string): boolean {
 
 export class AuthService {
   static getUser(): User {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return INITIAL_USER;
-      }
-    }
-    return INITIAL_USER;
+    return SafeStorage.get<User>(STORAGE_KEYS.USER_DATA, INITIAL_USER);
   }
 
   static saveUser(user: User): void {
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    SafeStorage.set(STORAGE_KEYS.USER_DATA, user);
   }
 
   static getBodyProfile(): BodyProfile {
-    const saved = localStorage.getItem(PROFILE_STORAGE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return INITIAL_BODY_PROFILE;
-      }
-    }
-    return INITIAL_BODY_PROFILE;
+    return SafeStorage.get<BodyProfile>(STORAGE_KEYS.BODY_PROFILE, INITIAL_BODY_PROFILE);
   }
 
   static saveBodyProfile(profile: BodyProfile): void {
-    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+    SafeStorage.set(STORAGE_KEYS.BODY_PROFILE, profile);
   }
 
   static isAuthenticated(): boolean {
-    return !!localStorage.getItem(AUTH_TOKEN_KEY);
+    const token = SafeStorage.get<string | null>(STORAGE_KEYS.AUTH_TOKEN, null);
+    return !!token;
   }
 
   static setAuthenticated(token: string = 'mock_jwt_token_fitsync'): void {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    SafeStorage.set(STORAGE_KEYS.AUTH_TOKEN, token);
   }
 
   static logout(): void {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
+    SafeStorage.remove(STORAGE_KEYS.AUTH_TOKEN);
   }
 }
+
